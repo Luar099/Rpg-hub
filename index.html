@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Rounds — MORTE (HARD)</title>
+  <title>Rounds — MORTE | Gravidade + Dificuldade</title>
   <style>
     :root{
       --bg:#05060a;
@@ -14,7 +14,6 @@
       --p1:#fb923c;   /* laranja */
       --p2:#60a5fa;   /* azul */
       --good:#22c55e;
-      --warn:#eab308;
       --bad:#ef4444;
     }
     *{box-sizing:border-box}
@@ -22,8 +21,8 @@
     body{
       margin:0;
       background:
-        radial-gradient(1000px 600px at 50% 10%, rgba(96,165,250,.18), transparent 60%),
-        radial-gradient(900px 700px at 20% 85%, rgba(251,146,60,.14), transparent 60%),
+        radial-gradient(1100px 700px at 55% 10%, rgba(96,165,250,.16), transparent 60%),
+        radial-gradient(1000px 800px at 20% 90%, rgba(251,146,60,.12), transparent 60%),
         var(--bg);
       color:var(--txt);
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
@@ -33,12 +32,12 @@
       padding:18px;
     }
     .wrap{
-      width:min(1060px, 100%);
+      width:min(1260px, 100%);
       display:grid;
-      grid-template-columns: 1fr 320px;
+      grid-template-columns: 1fr 360px;
       gap:14px;
     }
-    @media (max-width: 940px){
+    @media (max-width: 1020px){
       .wrap{grid-template-columns:1fr}
     }
     .card{
@@ -58,9 +57,7 @@
       background: linear-gradient(180deg, rgba(255,255,255,.05), transparent);
       flex-wrap:wrap;
     }
-    .title{
-      display:flex; flex-direction:column; gap:2px;
-    }
+    .title{display:flex; flex-direction:column; gap:2px;}
     .title b{font-size:14.5px; letter-spacing:.25px}
     .title span{font-size:12px; color:var(--muted)}
     .hud{
@@ -74,7 +71,7 @@
       background: rgba(255,255,255,.03);
       white-space:nowrap;
     }
-    .pill strong{font-weight:800}
+    .pill strong{font-weight:850}
     .btn{
       cursor:pointer;
       border:1px solid var(--line);
@@ -87,10 +84,10 @@
     .btn:hover{background: rgba(255,255,255,.10)}
     canvas{
       width:100%;
-      height:640px;
+      height:700px;
       display:block;
       background:
-        radial-gradient(900px 600px at 50% 25%, rgba(255,255,255,.05), transparent 60%),
+        radial-gradient(1100px 700px at 50% 30%, rgba(255,255,255,.05), transparent 60%),
         #070815;
     }
     .side{padding:14px}
@@ -118,6 +115,34 @@
       font-size:12.5px; color:var(--muted);
     }
     .dot{display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:8px; vertical-align:middle}
+
+    .control{
+      margin-top:10px;
+      padding:10px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background: rgba(255,255,255,.03);
+    }
+    .row{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px; flex-wrap:wrap;
+      margin:8px 0;
+    }
+    select, input[type="range"]{
+      width:100%;
+      accent-color: #60a5fa;
+    }
+    select{
+      padding:8px 10px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.25);
+      color: var(--txt);
+      outline:none;
+    }
+    .mini{
+      font-size:12px; color:var(--muted);
+    }
     .overlay{
       position:fixed; inset:0;
       display:none; align-items:center; justify-content:center;
@@ -127,7 +152,7 @@
     }
     .overlay.show{display:flex}
     .modal{
-      width:min(720px,100%);
+      width:min(780px,100%);
       background: rgba(12,14,25,.95);
       border:1px solid var(--line);
       border-radius:20px;
@@ -136,7 +161,7 @@
     }
     .modal h2{margin:0 0 8px 0; font-size:18px}
     .modal p{margin:0 0 12px 0; color:var(--muted); line-height:1.4}
-    .modal .row{display:flex; gap:10px; flex-wrap:wrap}
+    .modal .btnrow{display:flex; gap:10px; flex-wrap:wrap}
     .small{font-size:12px; color:var(--muted); margin-top:8px}
   </style>
 </head>
@@ -145,8 +170,8 @@
   <div class="card">
     <div class="topbar">
       <div class="title">
-        <b>ROUNDS — A MORTE (HARD)</b>
-        <span>Laranja (você) vs Azul (MORTE). Derrote a Morte 3 vezes para renascer.</span>
+        <b>ROUNDS — A MORTE | Gravidade + Dificuldade</b>
+        <span>3 vidas cada. Vence 3 rodadas (mata a Morte 3x) = RENASCE.</span>
       </div>
       <div class="hud">
         <span class="pill">Rodada: <strong id="round">1</strong>/3</span>
@@ -158,36 +183,61 @@
         <button class="btn" id="btnReset">Reset</button>
       </div>
     </div>
-    <canvas id="c" width="960" height="640"></canvas>
+    <canvas id="c" width="1280" height="720"></canvas>
   </div>
 
   <div class="card side">
     <h3>Controles</h3>
     <div class="grid">
-      <div class="k"><div class="key">W A S D</div><div class="desc">Mover</div></div>
+      <div class="k"><div class="key">A / D</div><div class="desc">Andar</div></div>
+      <div class="k"><div class="key">W</div><div class="desc">Pular</div></div>
       <div class="k"><div class="key">Mouse</div><div class="desc">Mirar</div></div>
       <div class="k"><div class="key">Clique / Espaço</div><div class="desc">Atirar</div></div>
-      <div class="k"><div class="key">Shift</div><div class="desc">Dash (cooldown)</div></div>
+      <div class="k"><div class="key">Shift</div><div class="desc">Dash</div></div>
+      <div class="k"><div class="key">Esc / R</div><div class="desc">Pausar / Reset</div></div>
     </div>
+
+    <div class="control">
+      <div class="row">
+        <div><b>Dificuldade</b><div class="mini">muda a força da IA em tempo real</div></div>
+      </div>
+      <select id="difficulty">
+        <option value="easy">Easy</option>
+        <option value="medium" selected>Médio</option>
+        <option value="hard">Hard</option>
+        <option value="custom">Custom</option>
+      </select>
+
+      <div style="height:8px"></div>
+
+      <div class="row">
+        <div><b>Intensidade (Custom)</b><div class="mini">0 = easy • 100 = hard</div></div>
+        <div class="pill"><strong id="intVal">50</strong></div>
+      </div>
+      <input id="intensity" type="range" min="0" max="100" value="50"/>
+
+      <div class="mini" id="diffDesc" style="margin-top:8px">
+        Médio: equilíbrio bom — a Morte te pressiona, mas dá espaço pra aprender.
+      </div>
+    </div>
+
     <p>
-      A <strong>MORTE</strong> é agressiva: mira bem, dá dash e tenta te encurralar.
-      Cada “morte” = perdeu 1 vida. Ao zerar as 3 vidas, reinicia a rodada.
+      Cair no vazio conta como morte. A dificuldade pode ser trocada sem resetar.
     </p>
     <div class="legend">
       <div><span class="dot" style="background:var(--p1)"></span>Você (laranja)</div>
       <div><span class="dot" style="background:var(--p2)"></span>A MORTE (azul)</div>
-      <div><span class="dot" style="background:var(--good)"></span>Derrote 3 rodadas = RENASCE</div>
-      <div><span class="dot" style="background:var(--bad)"></span>Se perder a rodada, tenta de novo</div>
+      <div><span class="dot" style="background:var(--good)"></span>Ganhe 3 rodadas = renasce</div>
+      <div><span class="dot" style="background:var(--bad)"></span>Caiu no vazio = morreu</div>
     </div>
-    <div class="small">Extras: <strong>R</strong> reset, <strong>Esc</strong> pausa.</div>
   </div>
 </div>
 
 <div class="overlay" id="overlay">
   <div class="modal">
     <h2 id="mTitle">Rounds — MORTE</h2>
-    <p id="mText">Clique em “Jogar” e sobreviva.</p>
-    <div class="row">
+    <p id="mText">Derrote a Morte 3 vezes para renascer.</p>
+    <div class="btnrow">
       <button class="btn" id="mPlay">Jogar</button>
       <button class="btn" id="mReset">Reset</button>
       <button class="btn" id="mClose">Fechar</button>
@@ -198,11 +248,10 @@
 
 <script>
 (() => {
-  // ======= CANVAS =======
   const canvas = document.getElementById("c");
   const ctx = canvas.getContext("2d", { alpha:false });
 
-  // ======= UI =======
+  // UI
   const $round = document.getElementById("round");
   const $lP = document.getElementById("livesP");
   const $lE = document.getElementById("livesE");
@@ -210,6 +259,11 @@
   const btnStart = document.getElementById("btnStart");
   const btnPause = document.getElementById("btnPause");
   const btnReset = document.getElementById("btnReset");
+
+  const selDiff = document.getElementById("difficulty");
+  const rngInt = document.getElementById("intensity");
+  const intVal = document.getElementById("intVal");
+  const diffDesc = document.getElementById("diffDesc");
 
   const overlay = document.getElementById("overlay");
   const mTitle = document.getElementById("mTitle");
@@ -219,196 +273,211 @@
   const mReset = document.getElementById("mReset");
   const mClose = document.getElementById("mClose");
 
-  // ======= CONFIG =======
-  const MAX_ROUNDS = 3;          // matar a morte 3x
-  const LIVES_PER_ROUND = 3;     // cada um tem 3 vidas
-  const ARENA_PAD = 18;
+  // ===== CONFIG BASE =====
+  const MAX_ROUNDS = 3;
+  const LIVES_PER_ROUND = 3;
 
-  // players
-  const R = 18; // raio das bolas
-  const P_SPEED = 240;
-  const E_SPEED = 255; // inimigo um pouco mais rápido
-  const FRICTION = 0.88; // suaviza movimento
-
-  // tiros
-  const BULLET_R = 5;
-  const BULLET_SPEED = 560;
-  const FIRE_CD = 180; // ms
-  const BULLET_LIFE = 1.25; // s
-  const KNOCKBACK = 140;
+  // physics (player)
+  const R = 18;
+  const GRAV = 1600;
+  const MOVE_ACC = 2600;
+  const MOVE_MAX = 320;
+  const AIR_CONTROL = 0.65;
+  const JUMP_V = 620;
+  const GROUND_FRICTION = 0.82;
+  const AIR_FRICTION = 0.98;
 
   // dash
-  const DASH_CD = 1200; // ms
-  const DASH_TIME = 0.11; // s
-  const DASH_MULT = 3.3;
+  const DASH_CD = 1200;
+  const DASH_TIME = 0.11;
+  const DASH_V = 860;
 
-  // Hard AI
-  const AI_REACTION = 0.045; // menor = reage melhor
-  const AI_FIRE_ACC = 0.78;  // chance de atirar quando alinhado
-  const AI_DASH_CHANCE = 0.012;
-  const AI_STRAFE = 0.55;    // strafe pra ficar chato
+  // shooting
+  const BULLET_R = 5;
+  const BULLET_SPEED = 620;
+  const FIRE_CD = 200;
+  const BULLET_LIFE = 1.4;
+  const KNOCK = 320;
 
-  // ======= STATE =======
+  // ===== WORLD =====
+  const W = canvas.width;
+  const H = canvas.height;
+
+  const plats = [
+    {x: 80,  y: H-90,  w: W-160, h: 26},
+    {x: 180, y: H-210, w: 260, h: 22},
+    {x: W-440, y: H-210, w: 260, h: 22},
+    {x: W/2 - 150, y: H-330, w: 300, h: 22},
+    {x: 110, y: H-380, w: 220, h: 20},
+    {x: W-330, y: H-380, w: 220, h: 20},
+    {x: W/2 - 360, y: H-280, w: 160, h: 18},
+    {x: W/2 + 200, y: H-280, w: 160, h: 18},
+  ];
+
+  // ===== DIFFICULTY (Adjustable) =====
+  // These values get updated by setDifficulty()
+  const AI = {
+    eMoveMax: 240,
+    reaction: 0.10,
+    fireChance: 0.55,
+    aimWobble: 26,
+    dashChance: 0.007,
+    desiredDist: 300,
+    pressure: 0.55,  // 0..1 (how much it tries to chase)
+  };
+
+  function lerp(a,b,t){ return a + (b-a)*t; }
+  function clamp(v,a,b){ return Math.max(a, Math.min(b,v)); }
+
+  function applyPreset(mode){
+    // presets
+    if (mode==="easy"){
+      rngInt.value = 25;
+      setCustom(25);
+      diffDesc.textContent = "Easy: a Morte é lenta e erra bastante. Ótimo pra aprender.";
+    } else if (mode==="medium"){
+      rngInt.value = 50;
+      setCustom(50);
+      diffDesc.textContent = "Médio: equilíbrio bom — te pressiona, mas dá espaço pra reagir.";
+    } else if (mode==="hard"){
+      rngInt.value = 85;
+      setCustom(85);
+      diffDesc.textContent = "Hard: a Morte fica bem agressiva e mira melhor.";
+    } else {
+      // custom mantém slider
+      setCustom(parseInt(rngInt.value,10));
+      diffDesc.textContent = "Custom: você decide o quanto a Morte aperta.";
+    }
+  }
+
+  function setCustom(intensity){
+    // intensity: 0..100
+    const t = clamp(intensity/100, 0, 1);
+
+    // easy -> hard ranges
+    AI.eMoveMax   = lerp(200, 310, t);
+    AI.reaction   = lerp(0.16, 0.040, t);  // smaller = faster react
+    AI.fireChance = lerp(0.30, 0.85, t);
+    AI.aimWobble  = lerp(44, 10, t);       // lower wobble = better aim
+    AI.dashChance = lerp(0.003, 0.020, t);
+    AI.desiredDist= lerp(340, 240, t);
+    AI.pressure   = lerp(0.40, 0.85, t);
+
+    intVal.textContent = String(intensity);
+  }
+
+  selDiff.addEventListener("change", () => applyPreset(selDiff.value));
+  rngInt.addEventListener("input", () => {
+    intVal.textContent = rngInt.value;
+    selDiff.value = "custom";
+    applyPreset("custom");
+  });
+
+  // ===== STATE =====
   let running=false, paused=false, lastT=0;
-  let round=1; // 1..3
-  let livesP=LIVES_PER_ROUND, livesE=LIVES_PER_ROUND;
-  let killsOnDeath=0;
+  let round=1, livesP=LIVES_PER_ROUND, livesE=LIVES_PER_ROUND, kills=0;
 
   const keys = Object.create(null);
-  let mouse = { x: canvas.width/2, y: canvas.height/2, down:false };
+  let mouse = {x: W/2, y: H/2, down:false};
+  const bullets = []; // {x,y,vx,vy,life,from}
 
-  function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
-  function len(x,y){ return Math.hypot(x,y); }
+  const player = {
+    x: 220, y: H-200,
+    vx: 0, vy: 0,
+    onGround:false,
+    coyote:0,
+    dashCD:0, dashT:0,
+    fireCD:0,
+  };
 
-  function showOverlay(title, text, hint=""){
-    mTitle.textContent = title;
-    mText.textContent = text;
-    mHint.textContent = hint;
+  const enemy = {
+    x: W-220, y: H-200,
+    vx: 0, vy: 0,
+    onGround:false,
+    coyote:0,
+    dashCD:0, dashT:0,
+    fireCD:0,
+    aimX: 220, aimY: H-200
+  };
+
+  function showOverlay(title,text,hint=""){
+    mTitle.textContent=title;
+    mText.textContent=text;
+    mHint.textContent=hint;
     overlay.classList.add("show");
   }
   function hideOverlay(){ overlay.classList.remove("show"); }
 
-  // ======= ENTITIES =======
-  const player = {
-    x: 170, y: canvas.height/2,
-    vx: 0, vy: 0,
-    dashCD: 0, dashT: 0,
-    fireCD: 0,
-    alive:true,
-  };
-
-  const enemy = {
-    x: canvas.width-170, y: canvas.height/2,
-    vx: 0, vy: 0,
-    dashCD: 0, dashT: 0,
-    fireCD: 0,
-    alive:true,
-    aimX: canvas.width/2, aimY: canvas.height/2, // mira suavizada
-  };
-
-  const bullets = []; // {x,y,vx,vy,life,from:"P"|"E"}
-
-  const obstacles = [
-    // retângulos simples (mapa 2D)
-    {x: canvas.width/2 - 70, y: canvas.height/2 - 140, w: 140, h: 44},
-    {x: canvas.width/2 - 70, y: canvas.height/2 + 96,  w: 140, h: 44},
-    {x: canvas.width/2 - 240, y: canvas.height/2 - 26, w: 110, h: 52},
-    {x: canvas.width/2 + 130, y: canvas.height/2 - 26, w: 110, h: 52},
-  ];
-
-  function resetPositions(){
-    player.x = 170; player.y = canvas.height/2;
-    player.vx = player.vy = 0;
-    player.dashT = 0;
-    player.fireCD = 0;
-
-    enemy.x = canvas.width-170; enemy.y = canvas.height/2;
-    enemy.vx = enemy.vy = 0;
-    enemy.dashT = 0;
-    enemy.fireCD = 0;
-    enemy.aimX = player.x; enemy.aimY = player.y;
-
-    bullets.length = 0;
+  function updateHUD(){
+    $round.textContent=round;
+    $lP.textContent=livesP;
+    $lE.textContent=livesE;
+    $dash.textContent=(player.dashCD<=0 ? "OK" : (Math.ceil(player.dashCD/100)/10)+"s");
   }
 
+  function resetPositions(){
+    player.x=220; player.y=H-200; player.vx=0; player.vy=0; player.onGround=false; player.coyote=0;
+    player.dashT=0; player.fireCD=0;
+    enemy.x=W-220; enemy.y=H-200; enemy.vx=0; enemy.vy=0; enemy.onGround=false; enemy.coyote=0;
+    enemy.dashT=0; enemy.fireCD=0;
+    enemy.aimX=player.x; enemy.aimY=player.y;
+    bullets.length=0;
+  }
   function resetGame(){
-    round = 1;
-    killsOnDeath = 0;
-    livesP = LIVES_PER_ROUND;
-    livesE = LIVES_PER_ROUND;
     running=false; paused=false;
+    round=1; kills=0;
+    livesP=LIVES_PER_ROUND; livesE=LIVES_PER_ROUND;
     resetPositions();
     updateHUD();
   }
 
-  function updateHUD(){
-    $round.textContent = round;
-    $lP.textContent = livesP;
-    $lE.textContent = livesE;
-    $dash.textContent = (player.dashCD<=0 ? "OK" : Math.ceil(player.dashCD/100)/10 + "s");
-  }
+  // ===== COLLISION =====
+  function resolvePlatforms(ent){
+    ent.onGround=false;
 
-  // ======= COLLISION =======
-  function circleRectCollide(cx, cy, cr, rx, ry, rw, rh){
-    const closestX = clamp(cx, rx, rx+rw);
-    const closestY = clamp(cy, ry, ry+rh);
-    const dx = cx - closestX;
-    const dy = cy - closestY;
-    return (dx*dx + dy*dy) <= cr*cr;
-  }
+    // clamp in world horizontally
+    ent.x = clamp(ent.x, R, W-R);
 
-  function pushOutOfRects(ent){
-    // resolve colisão de círculo com retângulos (simples)
-    for (const o of obstacles){
-      if (!circleRectCollide(ent.x, ent.y, R, o.x, o.y, o.w, o.h)) continue;
+    for (const p of plats){
+      const closestX = clamp(ent.x, p.x, p.x+p.w);
+      const closestY = clamp(ent.y, p.y, p.y+p.h);
+      const dx = ent.x - closestX;
+      const dy = ent.y - closestY;
+      if (dx*dx + dy*dy > R*R) continue;
 
-      // empurra pelo menor eixo
-      const left = ent.x - o.x;
-      const right = (o.x + o.w) - ent.x;
-      const top = ent.y - o.y;
-      const bottom = (o.y + o.h) - ent.y;
+      const topDist = Math.abs((ent.y + R) - p.y);
+      const bottomDist = Math.abs((p.y+p.h) - (ent.y - R));
 
-      const minX = Math.min(left, right);
-      const minY = Math.min(top, bottom);
-
-      if (minX < minY){
-        if (left < right) ent.x = o.x - R - 0.5;
-        else ent.x = o.x + o.w + R + 0.5;
-        ent.vx *= -0.35;
+      if (ent.vy >= 0 && topDist < 30 && ent.y < p.y){
+        ent.y = p.y - R - 0.01;
+        ent.vy = 0;
+        ent.onGround = true;
+        ent.coyote = 0.10;
+      } else if (ent.vy < 0 && bottomDist < 30 && ent.y > p.y){
+        ent.y = p.y + p.h + R + 0.01;
+        ent.vy = 70;
       } else {
-        if (top < bottom) ent.y = o.y - R - 0.5;
-        else ent.y = o.y + o.h + R + 0.5;
-        ent.vy *= -0.35;
+        if (ent.x < p.x) ent.x = p.x - R - 0.01;
+        else if (ent.x > p.x+p.w) ent.x = p.x+p.w + R + 0.01;
+        ent.vx *= -0.35;
       }
     }
   }
 
-  function keepInArena(ent){
-    const minX = ARENA_PAD + R;
-    const maxX = canvas.width - ARENA_PAD - R;
-    const minY = ARENA_PAD + R;
-    const maxY = canvas.height - ARENA_PAD - R;
-
-    if (ent.x < minX){ ent.x = minX; ent.vx *= -0.5; }
-    if (ent.x > maxX){ ent.x = maxX; ent.vx *= -0.5; }
-    if (ent.y < minY){ ent.y = minY; ent.vy *= -0.5; }
-    if (ent.y > maxY){ ent.y = maxY; ent.vy *= -0.5; }
-  }
-
-  function lineHitsRect(x1,y1,x2,y2, r){
-    // checa se "linha grossa" passa por retângulo (aprox)
-    for (const o of obstacles){
-      // expand rect por r
-      const rx = o.x - r, ry = o.y - r, rw = o.w + r*2, rh = o.h + r*2;
-      // amostragem simples
-      const steps = 10;
-      for (let i=0;i<=steps;i++){
-        const t = i/steps;
-        const x = x1 + (x2-x1)*t;
-        const y = y1 + (y2-y1)*t;
-        if (x>=rx && x<=rx+rw && y>=ry && y<=ry+rh) return true;
-      }
-    }
-    return false;
-  }
-
-  // ======= SHOOTING =======
+  // ===== SHOOTING =====
   function shoot(from){
     const ent = (from==="P") ? player : enemy;
-    if (ent.fireCD > 0) return;
+    if (ent.fireCD>0) return;
 
-    let ax, ay;
-    if (from==="P"){
-      ax = mouse.x; ay = mouse.y;
-    } else {
-      ax = enemy.aimX; ay = enemy.aimY;
-    }
+    let tx, ty;
+    if (from==="P"){ tx=mouse.x; ty=mouse.y; }
+    else { tx=enemy.aimX; ty=enemy.aimY; }
 
-    const dx = ax - ent.x;
-    const dy = ay - ent.y;
-    const d = Math.max(1, len(dx,dy));
-    const vx = (dx/d) * BULLET_SPEED;
-    const vy = (dy/d) * BULLET_SPEED;
+    const dx = tx - ent.x;
+    const dy = ty - ent.y;
+    const d = Math.max(1, Math.hypot(dx,dy));
+    const vx = (dx/d)*BULLET_SPEED;
+    const vy = (dy/d)*BULLET_SPEED;
 
     bullets.push({
       x: ent.x + (dx/d)*(R+10),
@@ -421,30 +490,20 @@
     ent.fireCD = FIRE_CD;
   }
 
-  // ======= DAMAGE / ROUND =======
-  let banner = { text:"", t:0, color:"rgba(255,255,255,.9)" };
-
-  function setBanner(text, color="rgba(242,244,255,.92)", ms=700){
-    banner.text = text;
-    banner.color = color;
-    banner.t = ms;
+  function bulletHits(ent, b){
+    const dx = b.x - ent.x, dy = b.y - ent.y;
+    const rr = (R + BULLET_R);
+    return dx*dx + dy*dy <= rr*rr;
   }
 
   function killPlayer(){
-    livesP -= 1;
+    livesP--;
     updateHUD();
-    setBanner("VOCÊ MORREU (-1 vida)", "rgba(239,68,68,.92)", 800);
-    if (livesP <= 0){
-      // perdeu a rodada
-      paused = true;
-      showOverlay(
-        "Derrotado pela MORTE",
-        "Você perdeu as 3 vidas desta rodada. Respire e tente novamente.",
-        "No RPG: talvez uma consequência leve antes de tentar de novo (marca, visão, dívida)."
-      );
-      // reseta só a rodada (mantém round atual)
-      livesP = LIVES_PER_ROUND;
-      livesE = LIVES_PER_ROUND;
+    if (livesP<=0){
+      paused=true;
+      showOverlay("Derrotado", "Você perdeu as 3 vidas desta rodada. Tente novamente.",
+        "Dica: troque a dificuldade no menu e volte.");
+      livesP=LIVES_PER_ROUND; livesE=LIVES_PER_ROUND;
       resetPositions();
       updateHUD();
     } else {
@@ -453,122 +512,104 @@
   }
 
   function killEnemy(){
-    livesE -= 1;
+    livesE--;
     updateHUD();
-    setBanner("A MORTE CAIU (-1 vida dela)", "rgba(34,197,94,.90)", 800);
-
-    if (livesE <= 0){
-      // ganhou a rodada
-      killsOnDeath += 1;
-      setBanner("VOCÊ VENCEU A RODADA!", "rgba(34,197,94,.92)", 900);
-
-      if (killsOnDeath >= MAX_ROUNDS){
-        paused = true;
-        showOverlay(
-          "RENASCIDO!",
-          "Você derrotou a MORTE 3 vezes. O destino cedeu… você voltou.",
-          "No RPG: descreva o renascimento (respiração volta, batimento, cor nos olhos) e um “preço” narrativo."
-        );
+    if (livesE<=0){
+      kills++;
+      if (kills>=MAX_ROUNDS){
+        paused=true;
+        showOverlay("RENASCIDO!", "Você derrotou a MORTE 3 vezes. Você voltou.",
+          "No RPG: descreva o retorno e uma marca/consequência.");
         return;
       }
-
-      round = killsOnDeath + 1;
-      livesP = LIVES_PER_ROUND;
-      livesE = LIVES_PER_ROUND;
+      round = kills+1;
+      livesP=LIVES_PER_ROUND; livesE=LIVES_PER_ROUND;
       resetPositions();
       updateHUD();
-
-      paused = true;
-      showOverlay(
-        `Rodada ${round}/3`,
-        "A MORTE retorna mais irritada. Você sente o mundo puxando você de volta…",
-        "Clique em Jogar para continuar."
-      );
+      paused=true;
+      showOverlay(`Rodada ${round}/3`, "A MORTE retorna… você está mais perto do renascimento.",
+        "Clique em Jogar para continuar.");
     } else {
       resetPositions();
     }
   }
 
-  function bulletHitsCircle(b, ent){
-    const dx = b.x - ent.x;
-    const dy = b.y - ent.y;
-    return (dx*dx + dy*dy) <= (R + BULLET_R)*(R + BULLET_R);
-  }
-
-  // ======= INPUT =======
-  window.addEventListener("keydown", (e) => {
+  // ===== INPUT =====
+  window.addEventListener("keydown",(e)=>{
     if (e.repeat) return;
-    keys[e.code] = true;
+    keys[e.code]=true;
 
-    if (e.code === "Escape"){
-      if (!running) return;
-      paused = !paused;
-      if (!paused){
-        lastT = performance.now();
-        requestAnimationFrame(loop);
-      }
+    if (e.code==="Escape"){
+      if(!running) return;
+      paused=!paused;
+      if(!paused){ lastT=performance.now(); requestAnimationFrame(loop); }
     }
-    if (e.code === "Space"){
+    if (e.code==="Space"){
       e.preventDefault();
-      if (!running){
-        start();
-      } else if (!paused){
-        shoot("P");
-      }
+      if (!running) start();
+      else if(!paused) shoot("P");
     }
-    if (e.code === "KeyR"){
+    if (e.code==="KeyR"){
       hideOverlay();
       resetGame();
       draw();
     }
-    if (e.code === "ShiftLeft" || e.code==="ShiftRight"){
-      // dash
-      if (!running || paused) return;
-      if (player.dashCD <= 0) player.dashT = DASH_TIME;
+    if (e.code==="ShiftLeft"||e.code==="ShiftRight"){
+      if(!running||paused) return;
+      if (player.dashCD<=0){
+        player.dashT = DASH_TIME;
+        const dx = (mouse.x - player.x), dy = (mouse.y - player.y);
+        const d = Math.max(1, Math.hypot(dx,dy));
+        player.vx = (dx/d)*DASH_V;
+        player.vy = (dy/d)*DASH_V*0.35;
+      }
+    }
+    if (e.code==="KeyW"){
+      if(!running||paused) return;
+      if (player.onGround || player.coyote>0){
+        player.vy = -JUMP_V;
+        player.onGround=false;
+        player.coyote=0;
+      }
     }
   });
-  window.addEventListener("keyup", (e) => keys[e.code] = false);
+  window.addEventListener("keyup",(e)=> keys[e.code]=false);
 
-  canvas.addEventListener("mousemove", (e) => {
-    const rect = canvas.getBoundingClientRect();
-    mouse.x = (e.clientX - rect.left) * (canvas.width / rect.width);
-    mouse.y = (e.clientY - rect.top) * (canvas.height / rect.height);
+  canvas.addEventListener("mousemove",(e)=>{
+    const r=canvas.getBoundingClientRect();
+    mouse.x = (e.clientX-r.left)*(W/r.width);
+    mouse.y = (e.clientY-r.top)*(H/r.height);
   });
-  canvas.addEventListener("mousedown", () => { mouse.down=true; if(running && !paused) shoot("P"); });
-  window.addEventListener("mouseup", () => mouse.down=false);
+  canvas.addEventListener("mousedown",()=>{ mouse.down=true; if(running&&!paused) shoot("P");});
+  window.addEventListener("mouseup",()=> mouse.down=false);
 
-  // ======= BUTTONS =======
-  btnStart.addEventListener("click", () => { hideOverlay(); start(); });
-  btnPause.addEventListener("click", () => {
-    if (!running) return;
-    paused = !paused;
-    if (!paused){ lastT = performance.now(); requestAnimationFrame(loop); }
+  // buttons
+  btnStart.addEventListener("click", ()=>{ hideOverlay(); start(); });
+  btnPause.addEventListener("click", ()=>{
+    if(!running) return;
+    paused=!paused;
+    if(!paused){ lastT=performance.now(); requestAnimationFrame(loop); }
   });
-  btnReset.addEventListener("click", () => { hideOverlay(); resetGame(); draw(); });
+  btnReset.addEventListener("click", ()=>{ hideOverlay(); resetGame(); draw(); });
 
-  mPlay.addEventListener("click", () => {
-    hideOverlay();
-    if (!running) start();
-    else { paused=false; lastT = performance.now(); requestAnimationFrame(loop); }
-  });
-  mReset.addEventListener("click", () => { hideOverlay(); resetGame(); draw(); });
-  mClose.addEventListener("click", () => hideOverlay());
-  overlay.addEventListener("click", (e) => { if(e.target===overlay) hideOverlay(); });
+  mPlay.addEventListener("click", ()=>{ hideOverlay(); if(!running) start(); else {paused=false; lastT=performance.now(); requestAnimationFrame(loop);} });
+  mReset.addEventListener("click", ()=>{ hideOverlay(); resetGame(); draw(); });
+  mClose.addEventListener("click", ()=> hideOverlay());
+  overlay.addEventListener("click",(e)=>{ if(e.target===overlay) hideOverlay(); });
 
-  // ======= GAME LOOP =======
   function start(){
-    if (!running){
-      running = true;
-      paused = false;
-      lastT = performance.now();
+    if(!running){
+      running=true; paused=false;
+      lastT=performance.now();
       requestAnimationFrame(loop);
     } else {
-      paused = false;
-      lastT = performance.now();
+      paused=false;
+      lastT=performance.now();
       requestAnimationFrame(loop);
     }
   }
 
+  // ===== UPDATE =====
   function update(dt){
     // cooldowns
     player.fireCD = Math.max(0, player.fireCD - dt*1000);
@@ -576,99 +617,83 @@
     player.dashCD = Math.max(0, player.dashCD - dt*1000);
     enemy.dashCD  = Math.max(0, enemy.dashCD  - dt*1000);
 
-    if (banner.t > 0){
-      banner.t -= dt*1000;
-      if (banner.t < 0) banner.t = 0;
-    }
-
-    // ----- PLAYER MOVEMENT -----
-    let ax = 0, ay = 0;
-    if (keys["KeyW"]) ay -= 1;
-    if (keys["KeyS"]) ay += 1;
-    if (keys["KeyA"]) ax -= 1;
-    if (keys["KeyD"]) ax += 1;
-
-    const mag = Math.hypot(ax,ay) || 1;
-    ax /= mag; ay /= mag;
-
-    let speed = P_SPEED;
-    if (player.dashT > 0){
-      speed *= DASH_MULT;
+    if (player.dashT>0){
       player.dashT -= dt;
-      if (player.dashT <= 0){
-        player.dashT = 0;
-        player.dashCD = DASH_CD;
-      }
+      if(player.dashT<=0){ player.dashT=0; player.dashCD=DASH_CD; }
+    }
+    if (enemy.dashT>0){
+      enemy.dashT -= dt;
+      if(enemy.dashT<=0){ enemy.dashT=0; enemy.dashCD=DASH_CD; }
     }
 
-    player.vx = (player.vx * FRICTION) + ax * speed * dt;
-    player.vy = (player.vy * FRICTION) + ay * speed * dt;
-    player.x += player.vx;
-    player.y += player.vy;
+    // coyote
+    player.coyote = Math.max(0, player.coyote - dt);
+    enemy.coyote  = Math.max(0, enemy.coyote  - dt);
 
-    keepInArena(player);
-    pushOutOfRects(player);
+    // ----- PLAYER -----
+    let input = 0;
+    if (keys["KeyA"]) input -= 1;
+    if (keys["KeyD"]) input += 1;
 
-    // ----- ENEMY AI (HARD) -----
-    // mira suavizada (reação rápida)
-    enemy.aimX += (player.x - enemy.aimX) * (1 - Math.pow(AI_REACTION, dt*60));
-    enemy.aimY += (player.y - enemy.aimY) * (1 - Math.pow(AI_REACTION, dt*60));
+    const control = player.onGround ? 1 : AIR_CONTROL;
+    player.vx += input * MOVE_ACC * control * dt;
+    player.vx = clamp(player.vx, -MOVE_MAX, MOVE_MAX);
+    player.vx *= (player.onGround ? GROUND_FRICTION : AIR_FRICTION);
 
-    // decide movimento: aproximar + strafe + fugir se muito perto
+    player.vy += GRAV * dt;
+    player.y += player.vy * dt;
+    player.x += player.vx * dt;
+    resolvePlatforms(player);
+
+    // ----- ENEMY AI (adjustable) -----
+    // aim with reaction speed
+    const rx = 1 - Math.pow(AI.reaction, dt*60);
+    enemy.aimX += (player.x - enemy.aimX) * rx;
+    enemy.aimY += (player.y - enemy.aimY) * rx;
+
     const dx = player.x - enemy.x;
     const dy = player.y - enemy.y;
     const dist = Math.max(1, Math.hypot(dx,dy));
-    const nx = dx/dist, ny = dy/dist;
 
-    // strafe perpendicular
-    const sx = -ny, sy = nx;
-    const strafeDir = (Math.sin(performance.now()/220) > 0) ? 1 : -1;
+    // horizontal movement: chase/retreat based on distance + "pressure"
+    const desired = AI.desiredDist;
+    let ei = 0;
+    if (dist > desired) ei = (dx>0) ? 1 : -1;
+    if (dist < desired*0.62) ei = (dx>0) ? -1 : 1;
 
-    // manter distância "chata"
-    const desired = 260;
-    let mx = nx, my = ny;
-    if (dist < 170){ mx = -nx; my = -ny; } // foge se muito perto
-    if (dist > desired){ mx = nx; my = ny; }
+    // soften: pressure controls how much it commits
+    if (Math.random() > AI.pressure) ei *= 0.6;
 
-    // adiciona strafe
-    mx = mx*(1-AI_STRAFE) + sx*AI_STRAFE*strafeDir;
-    my = my*(1-AI_STRAFE) + sy*AI_STRAFE*strafeDir;
-
-    const mm = Math.hypot(mx,my) || 1;
-    mx/=mm; my/=mm;
-
-    let es = E_SPEED;
-    if (enemy.dashT > 0){
-      es *= DASH_MULT;
-      enemy.dashT -= dt;
-      if (enemy.dashT <= 0){
-        enemy.dashT = 0;
-        enemy.dashCD = DASH_CD;
-      }
-    } else {
-      // chance de dash em hard (pra encurtar/escapar)
-      if (enemy.dashCD <= 0 && Math.random() < AI_DASH_CHANCE){
-        enemy.dashT = DASH_TIME;
-      }
+    // jump if player above (chance scales a bit with pressure)
+    if ((player.y < enemy.y - 90) && (enemy.onGround || enemy.coyote>0) && Math.random() < (0.007 + AI.pressure*0.006)){
+      enemy.vy = -JUMP_V*0.92;
+      enemy.onGround=false;
+      enemy.coyote=0;
     }
 
-    enemy.vx = (enemy.vx * FRICTION) + mx * es * dt;
-    enemy.vy = (enemy.vy * FRICTION) + my * es * dt;
-    enemy.x += enemy.vx;
-    enemy.y += enemy.vy;
+    // dash sometimes
+    if (enemy.dashCD<=0 && enemy.dashT<=0 && Math.random() < AI.dashChance){
+      enemy.dashT = DASH_TIME;
+      enemy.vx = Math.sign(dx||1) * DASH_V*(0.55 + AI.pressure*0.35);
+      enemy.vy = -80;
+    }
 
-    keepInArena(enemy);
-    pushOutOfRects(enemy);
+    enemy.vx += ei * MOVE_ACC * (0.52 + AI.pressure*0.20) * dt;
+    enemy.vx = clamp(enemy.vx, -AI.eMoveMax, AI.eMoveMax);
+    enemy.vx *= (enemy.onGround ? GROUND_FRICTION : AIR_FRICTION);
 
-    // ----- AI SHOOT -----
-    // atira se tiver linha de visão aproximada e "alinhado"
-    const losBlocked = lineHitsRect(enemy.x, enemy.y, player.x, player.y, 8);
-    if (!losBlocked){
-      const align = Math.abs((dx/dist)*nx + (dy/dist)*ny); // ~1 sempre, mas ok
-      // condição simples: distância razoável e cooldown
-      if (enemy.fireCD <= 0 && dist < 520 && Math.random() < AI_FIRE_ACC){
-        shoot("E");
-      }
+    enemy.vy += GRAV * dt;
+    enemy.y += enemy.vy * dt;
+    enemy.x += enemy.vx * dt;
+    resolvePlatforms(enemy);
+
+    // shoot chance + wobble
+    if (enemy.fireCD<=0 && dist < 720 && Math.random() < AI.fireChance){
+      const wobX = (Math.random()*2-1)*AI.aimWobble;
+      const wobY = (Math.random()*2-1)*AI.aimWobble;
+      enemy.aimX += wobX;
+      enemy.aimY += wobY;
+      shoot("E");
     }
 
     // ----- BULLETS -----
@@ -678,45 +703,35 @@
       b.y += b.vy * dt;
       b.life -= dt;
 
-      // colisão com paredes/arena
-      if (b.x < ARENA_PAD || b.x > canvas.width-ARENA_PAD || b.y < ARENA_PAD || b.y > canvas.height-ARENA_PAD){
-        bullets.splice(i,1);
-        continue;
-      }
-      // colisão com obstáculos
-      let hitObs=false;
-      for (const o of obstacles){
-        if (b.x>=o.x && b.x<=o.x+o.w && b.y>=o.y && b.y<=o.y+o.h){ hitObs=true; break; }
-      }
-      if (hitObs){
-        bullets.splice(i,1);
-        continue;
-      }
-      if (b.life <= 0){
+      if (b.x < -50 || b.x > W+50 || b.y < -80 || b.y > H+120 || b.life<=0){
         bullets.splice(i,1);
         continue;
       }
 
-      // acerta player/enemy
+      // hit platforms
+      let hitPlat=false;
+      for (const p of plats){
+        if (b.x>=p.x && b.x<=p.x+p.w && b.y>=p.y && b.y<=p.y+p.h){ hitPlat=true; break; }
+      }
+      if (hitPlat){ bullets.splice(i,1); continue; }
+
+      // hit entities
       if (b.from==="E"){
-        if (bulletHitsCircle(b, player)){
-          // knockback
-          const kdx = player.x - b.x, kdy = player.y - b.y;
-          const kd = Math.max(1, Math.hypot(kdx,kdy));
-          player.vx += (kdx/kd) * (KNOCKBACK*dt);
-          player.vy += (kdy/kd) * (KNOCKBACK*dt);
-
+        if (bulletHits(player,b)){
+          const kx = (player.x - b.x), ky = (player.y - b.y);
+          const d = Math.max(1, Math.hypot(kx,ky));
+          player.vx += (kx/d)*KNOCK*0.30;
+          player.vy += (ky/d)*KNOCK*0.18;
           bullets.splice(i,1);
           killPlayer();
           continue;
         }
       } else {
-        if (bulletHitsCircle(b, enemy)){
-          const kdx = enemy.x - b.x, kdy = enemy.y - b.y;
-          const kd = Math.max(1, Math.hypot(kdx,kdy));
-          enemy.vx += (kdx/kd) * (KNOCKBACK*dt);
-          enemy.vy += (kdy/kd) * (KNOCKBACK*dt);
-
+        if (bulletHits(enemy,b)){
+          const kx = (enemy.x - b.x), ky = (enemy.y - b.y);
+          const d = Math.max(1, Math.hypot(kx,ky));
+          enemy.vx += (kx/d)*KNOCK*0.30;
+          enemy.vy += (ky/d)*KNOCK*0.18;
           bullets.splice(i,1);
           killEnemy();
           continue;
@@ -724,155 +739,142 @@
       }
     }
 
+    // fall deaths
+    if (player.y > H + 140) killPlayer();
+    if (enemy.y > H + 140) killEnemy();
+
     updateHUD();
   }
 
-  // ======= DRAW =======
+  // ===== DRAW =====
   function draw(){
-    // fundo
-    ctx.fillStyle = "#070815";
-    ctx.fillRect(0,0,canvas.width, canvas.height);
+    ctx.fillStyle="#070815";
+    ctx.fillRect(0,0,W,H);
 
-    // arena border
-    ctx.strokeStyle = "rgba(255,255,255,0.10)";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(ARENA_PAD, ARENA_PAD, canvas.width-ARENA_PAD*2, canvas.height-ARENA_PAD*2);
-
-    // obstáculos
-    for (const o of obstacles){
-      ctx.fillStyle = "rgba(255,255,255,0.06)";
-      ctx.fillRect(o.x,o.y,o.w,o.h);
-      ctx.strokeStyle = "rgba(255,255,255,0.12)";
-      ctx.strokeRect(o.x,o.y,o.w,o.h);
+    // platforms
+    for (const p of plats){
+      ctx.fillStyle="rgba(255,255,255,0.06)";
+      ctx.fillRect(p.x,p.y,p.w,p.h);
+      ctx.strokeStyle="rgba(255,255,255,0.12)";
+      ctx.strokeRect(p.x,p.y,p.w,p.h);
     }
 
-    // mira do player
+    // crosshair
     if (running){
       ctx.beginPath();
       ctx.arc(mouse.x, mouse.y, 6, 0, Math.PI*2);
-      ctx.fillStyle = "rgba(242,244,255,0.9)";
+      ctx.fillStyle="rgba(242,244,255,0.9)";
       ctx.fill();
-      ctx.strokeStyle = "rgba(255,255,255,0.25)";
+      ctx.strokeStyle="rgba(255,255,255,0.25)";
       ctx.stroke();
     }
 
     // bullets
     for (const b of bullets){
       ctx.beginPath();
-      ctx.arc(b.x, b.y, BULLET_R, 0, Math.PI*2);
+      ctx.arc(b.x,b.y,BULLET_R,0,Math.PI*2);
       ctx.fillStyle = (b.from==="P") ? "rgba(251,146,60,0.95)" : "rgba(96,165,250,0.95)";
       ctx.fill();
     }
 
-    // player & enemy
-    drawBall(player.x, player.y, R, "rgba(251,146,60,0.95)", "VOCÊ");
-    drawBall(enemy.x, enemy.y, R, "rgba(96,165,250,0.95)", "MORTE");
+    // balls
+    drawBall(player.x,player.y,R,"rgba(251,146,60,0.95)","VOCÊ");
+    drawBall(enemy.x,enemy.y,R,"rgba(96,165,250,0.95)","MORTE");
 
-    // banner
-    if (banner.t > 0){
-      const a = clamp(banner.t/800, 0, 1);
-      ctx.font = "900 26px system-ui";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillStyle = banner.color.replace("0.92", String(a));
-      ctx.fillText(banner.text, canvas.width/2, 78);
-    }
-
-    // paused text
+    // pause text
     if (!running){
-      centerText("CLIQUE EM INICIAR", canvas.width/2, canvas.height/2 - 10, 34, "rgba(242,244,255,0.92)");
-      centerText("WASD move • Mouse mira • Clique/Espaço atira • Shift dash", canvas.width/2, canvas.height/2 + 28, 14, "rgba(167,173,194,0.95)");
+      text("CLIQUE EM INICIAR", W/2, H/2-10, 34, "rgba(242,244,255,0.92)");
+      text("A/D anda • W pula • Mouse mira • Clique/Espaço atira • Shift dash", W/2, H/2+28, 14, "rgba(167,173,194,0.95)");
     } else if (paused){
-      centerText("PAUSADO", canvas.width/2, canvas.height/2 - 10, 34, "rgba(242,244,255,0.92)");
-      centerText("Pressione Esc para voltar", canvas.width/2, canvas.height/2 + 28, 14, "rgba(167,173,194,0.95)");
+      text("PAUSADO", W/2, H/2-10, 34, "rgba(242,244,255,0.92)");
+      text("Pressione Esc para voltar", W/2, H/2+28, 14, "rgba(167,173,194,0.95)");
     }
 
-    // progresso de renascimento (kills)
-    const pad = 18, w = 260, h = 10;
-    const x = canvas.width - pad - w;
-    const y = pad + 10;
-    ctx.fillStyle = "rgba(255,255,255,0.08)";
-    ctx.fillRect(x,y,w,h);
-    const p = clamp(killsOnDeath / MAX_ROUNDS, 0, 1);
-    ctx.fillStyle = "rgba(34,197,94,0.55)";
-    ctx.fillRect(x,y,w*p,h);
-    ctx.strokeStyle = "rgba(255,255,255,0.12)";
-    ctx.strokeRect(x,y,w,h);
-    ctx.font = "700 12px system-ui";
-    ctx.textAlign = "left";
-    ctx.textBaseline = "bottom";
-    ctx.fillStyle = "rgba(255,255,255,0.75)";
-    ctx.fillText("Renascimento", x, y-3);
-  }
+    // progress kills
+    const bw=280,bh=10,pad=18;
+    const bx = W - pad - bw;
+    const by = pad + 10;
+    ctx.fillStyle="rgba(255,255,255,0.08)";
+    ctx.fillRect(bx,by,bw,bh);
+    const pr = clamp(kills/MAX_ROUNDS,0,1);
+    ctx.fillStyle="rgba(34,197,94,0.55)";
+    ctx.fillRect(bx,by,bw*pr,bh);
+    ctx.strokeStyle="rgba(255,255,255,0.12)";
+    ctx.strokeRect(bx,by,bw,bh);
+    ctx.font="700 12px system-ui";
+    ctx.textAlign="left";
+    ctx.textBaseline="bottom";
+    ctx.fillStyle="rgba(255,255,255,0.75)";
+    ctx.fillText("Renascimento", bx, by-3);
 
-  function centerText(txt,x,y,size,color){
-    ctx.font = `900 ${size}px system-ui`;
-    ctx.textAlign="center";
-    ctx.textBaseline="middle";
-    ctx.fillStyle = color;
-    ctx.fillText(txt,x,y);
+    // difficulty label
+    ctx.font="700 12px system-ui";
+    ctx.textAlign="left";
+    ctx.textBaseline="bottom";
+    ctx.fillStyle="rgba(255,255,255,0.65)";
+    ctx.fillText(`Dificuldade: ${selDiff.value.toUpperCase()} (${rngInt.value})`, 18, 22);
   }
 
   function drawBall(x,y,r,color,label){
-    // glow
     ctx.beginPath();
-    ctx.arc(x,y,r+10,0,Math.PI*2);
+    ctx.arc(x,y,r+11,0,Math.PI*2);
     ctx.fillStyle = color.replace("0.95","0.12");
     ctx.fill();
 
-    // body
     ctx.beginPath();
     ctx.arc(x,y,r,0,Math.PI*2);
-    ctx.fillStyle = color;
+    ctx.fillStyle=color;
     ctx.fill();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = "rgba(255,255,255,0.22)";
+    ctx.lineWidth=2;
+    ctx.strokeStyle="rgba(255,255,255,0.22)";
     ctx.stroke();
 
-    // label
-    ctx.font = "800 11px system-ui";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "top";
-    ctx.fillStyle = "rgba(242,244,255,0.92)";
-    ctx.fillText(label, x, y + r + 8);
+    ctx.font="800 11px system-ui";
+    ctx.textAlign="center";
+    ctx.textBaseline="top";
+    ctx.fillStyle="rgba(242,244,255,0.92)";
+    ctx.fillText(label, x, y+r+8);
+  }
+
+  function text(t,x,y,size,color){
+    ctx.font=`900 ${size}px system-ui`;
+    ctx.textAlign="center";
+    ctx.textBaseline="middle";
+    ctx.fillStyle=color;
+    ctx.fillText(t,x,y);
   }
 
   function loop(t){
-    if (!running) return;
-    const dt = (t - lastT) / 1000;
+    if(!running) return;
+    const dt = Math.min((t-lastT)/1000, 0.033);
     lastT = t;
-
-    if (!paused){
-      update(Math.min(dt, 0.033)); // cap
-    }
+    if(!paused) update(dt);
     draw();
     requestAnimationFrame(loop);
   }
 
-  // ======= INIT =======
+  // ===== INIT =====
+  applyPreset("medium");
   resetGame();
   draw();
   showOverlay(
-    "ROUNDS — A MORTE (HARD)",
-    "Você (laranja) enfrenta a MORTE (azul). 3 vidas cada. Venceu 3 rodadas? Você renasce.",
-    "Dica: use dash (Shift) pra desviar. A MORTE mira bem."
+    "ROUNDS — MORTE (com dificuldade)",
+    "Escolha Easy / Médio / Hard (ou Custom) e derrote a Morte 3 vezes para renascer.",
+    "Dica: se ficar puxado, abaixa a intensidade."
   );
 
-  // ======= STARTERS =======
   function startFromOverlay(){
     hideOverlay();
-    if (!running){
-      running = true;
-      paused = false;
-      lastT = performance.now();
+    if(!running){
+      running=true; paused=false;
+      lastT=performance.now();
       requestAnimationFrame(loop);
     } else {
-      paused = false;
-      lastT = performance.now();
+      paused=false;
+      lastT=performance.now();
       requestAnimationFrame(loop);
     }
   }
-  // fix buttons
   btnStart.addEventListener("click", startFromOverlay);
   mPlay.addEventListener("click", startFromOverlay);
 })();
