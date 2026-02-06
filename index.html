@@ -1,67 +1,70 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Voltar dos Mortos — MiniGame (WASD)</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Rounds — MORTE (HARD)</title>
   <style>
     :root{
       --bg:#05060a;
-      --panel:#0f1220;
-      --line:rgba(255,255,255,.12);
+      --panel:rgba(15,18,32,.92);
+      --line:rgba(255,255,255,.10);
       --txt:#f2f4ff;
       --muted:#a7adc2;
+      --p1:#fb923c;   /* laranja */
+      --p2:#60a5fa;   /* azul */
       --good:#22c55e;
-      --ok:#eab308;
+      --warn:#eab308;
       --bad:#ef4444;
-      --ghost:#8b5cf6;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
       margin:0;
-      background: radial-gradient(1000px 600px at 50% 20%, rgba(139,92,246,.18), transparent 60%),
-                  radial-gradient(900px 700px at 20% 80%, rgba(34,197,94,.10), transparent 60%),
-                  var(--bg);
+      background:
+        radial-gradient(1000px 600px at 50% 10%, rgba(96,165,250,.18), transparent 60%),
+        radial-gradient(900px 700px at 20% 85%, rgba(251,146,60,.14), transparent 60%),
+        var(--bg);
       color:var(--txt);
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       display:flex;
       align-items:center;
       justify-content:center;
-      padding:20px;
+      padding:18px;
     }
     .wrap{
-      width:min(980px, 100%);
+      width:min(1060px, 100%);
       display:grid;
       grid-template-columns: 1fr 320px;
-      gap:16px;
+      gap:14px;
     }
-    @media (max-width: 880px){
+    @media (max-width: 940px){
       .wrap{grid-template-columns:1fr}
     }
     .card{
-      background: rgba(15,18,32,.9);
+      background: var(--panel);
       border:1px solid var(--line);
       border-radius:18px;
-      box-shadow: 0 18px 45px rgba(0,0,0,.45);
+      box-shadow: 0 18px 60px rgba(0,0,0,.55);
       overflow:hidden;
     }
     .topbar{
-      padding:14px 16px;
+      padding:12px 14px;
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:12px;
+      gap:10px;
       border-bottom:1px solid var(--line);
       background: linear-gradient(180deg, rgba(255,255,255,.05), transparent);
+      flex-wrap:wrap;
     }
     .title{
       display:flex; flex-direction:column; gap:2px;
     }
-    .title b{font-size:15px; letter-spacing:.2px}
+    .title b{font-size:14.5px; letter-spacing:.25px}
     .title span{font-size:12px; color:var(--muted)}
     .hud{
-      display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;
+      display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end;
       font-size:12px;
     }
     .pill{
@@ -69,10 +72,9 @@
       border:1px solid var(--line);
       border-radius:999px;
       background: rgba(255,255,255,.03);
-      color:var(--txt);
       white-space:nowrap;
     }
-    .pill strong{font-weight:700}
+    .pill strong{font-weight:800}
     .btn{
       cursor:pointer;
       border:1px solid var(--line);
@@ -80,7 +82,7 @@
       color:var(--txt);
       padding:8px 10px;
       border-radius:12px;
-      font-weight:600;
+      font-weight:650;
     }
     .btn:hover{background: rgba(255,255,255,.10)}
     canvas{
@@ -88,24 +90,12 @@
       height:640px;
       display:block;
       background:
-        linear-gradient(180deg, rgba(255,255,255,.04), transparent 40%),
-        radial-gradient(800px 500px at 50% 20%, rgba(139,92,246,.12), transparent 60%),
+        radial-gradient(900px 600px at 50% 25%, rgba(255,255,255,.05), transparent 60%),
         #070815;
     }
-    .side{
-      padding:14px 16px;
-    }
-    .side h3{
-      margin:0 0 8px 0;
-      font-size:14px;
-      letter-spacing:.2px;
-    }
-    .side p{
-      margin:0 0 10px 0;
-      color:var(--muted);
-      font-size:12.5px;
-      line-height:1.35;
-    }
+    .side{padding:14px}
+    .side h3{margin:0 0 8px 0; font-size:14px}
+    .side p{margin:0 0 10px 0; color:var(--muted); font-size:12.5px; line-height:1.35}
     .grid{
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -118,222 +108,455 @@
       padding:10px;
       background: rgba(255,255,255,.03);
     }
-    .k .key{
-      font-weight:900;
-      font-size:16px;
-      letter-spacing:.6px;
-    }
-    .k .desc{
-      font-size:12px;
-      color:var(--muted);
-      margin-top:3px;
-    }
+    .k .key{font-weight:900; font-size:14px}
+    .k .desc{font-size:12px; color:var(--muted); margin-top:4px}
     .legend{
       border-top:1px dashed var(--line);
       padding-top:12px;
       margin-top:10px;
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      font-size:12.5px;
-      color:var(--muted);
+      display:flex; flex-direction:column; gap:6px;
+      font-size:12.5px; color:var(--muted);
     }
-    .dot{
-      display:inline-block;
-      width:10px; height:10px;
-      border-radius:50%;
-      margin-right:8px;
-      vertical-align:middle;
-    }
+    .dot{display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:8px; vertical-align:middle}
     .overlay{
-      position:fixed;
-      inset:0;
-      display:none;
-      align-items:center;
-      justify-content:center;
-      background: rgba(0,0,0,.55);
-      backdrop-filter: blur(6px);
+      position:fixed; inset:0;
+      display:none; align-items:center; justify-content:center;
+      background: rgba(0,0,0,.58);
+      backdrop-filter: blur(7px);
       padding:18px;
     }
     .overlay.show{display:flex}
     .modal{
-      width:min(720px, 100%);
+      width:min(720px,100%);
       background: rgba(12,14,25,.95);
       border:1px solid var(--line);
       border-radius:20px;
       padding:18px;
-      box-shadow: 0 22px 70px rgba(0,0,0,.6);
+      box-shadow: 0 26px 80px rgba(0,0,0,.65);
     }
     .modal h2{margin:0 0 8px 0; font-size:18px}
     .modal p{margin:0 0 12px 0; color:var(--muted); line-height:1.4}
     .modal .row{display:flex; gap:10px; flex-wrap:wrap}
-    .small{
-      font-size:12px; color:var(--muted);
-      margin-top:10px;
-    }
+    .small{font-size:12px; color:var(--muted); margin-top:8px}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <div class="topbar">
-        <div class="title">
-          <b>VOLTA DOS MORTOS</b>
-          <span>Minigame de renascimento (W A S D) — meta: <strong>6700</strong> pontos</span>
-        </div>
-        <div class="hud">
-          <span class="pill">Pontos: <strong id="score">0</strong></span>
-          <span class="pill">Combo: <strong id="combo">0</strong></span>
-          <span class="pill">Vida da alma: <strong id="soul">100</strong>%</span>
-          <button class="btn" id="btnStart">Iniciar</button>
-          <button class="btn" id="btnPause">Pausar</button>
-          <button class="btn" id="btnReset">Reset</button>
-        </div>
+<div class="wrap">
+  <div class="card">
+    <div class="topbar">
+      <div class="title">
+        <b>ROUNDS — A MORTE (HARD)</b>
+        <span>Laranja (você) vs Azul (MORTE). Derrote a Morte 3 vezes para renascer.</span>
       </div>
-      <canvas id="game" width="900" height="640"></canvas>
-    </div>
-
-    <div class="card side">
-      <h3>Como funciona</h3>
-      <p>
-        Notas descem em 4 trilhas. Aperte a tecla certa quando a nota encostar na linha de acerto.
-        Quanto mais combo, mais você acelera a “volta à vida”.
-      </p>
-
-      <div class="grid">
-        <div class="k"><div class="key">W</div><div class="desc">Trilha 1</div></div>
-        <div class="k"><div class="key">A</div><div class="desc">Trilha 2</div></div>
-        <div class="k"><div class="key">S</div><div class="desc">Trilha 3</div></div>
-        <div class="k"><div class="key">D</div><div class="desc">Trilha 4</div></div>
-      </div>
-
-      <p>
-        <strong>Dicas pro RPG:</strong> você pode narrar como se cada acerto fosse “lembrar um motivo pra viver”.
-        Se falhar muito, a “vida da alma” cai e você precisa tentar de novo.
-      </p>
-
-      <div class="legend">
-        <div><span class="dot" style="background:var(--good)"></span>Perfeito: +200</div>
-        <div><span class="dot" style="background:var(--ok)"></span>Bom: +100</div>
-        <div><span class="dot" style="background:var(--bad)"></span>Erro: -5% alma</div>
-        <div><span class="dot" style="background:var(--ghost)"></span>Meta: 6700 = Renasce</div>
-      </div>
-
-      <div class="small">
-        Controles extras: <strong>Espaço</strong> (pausa), <strong>R</strong> (reset).
+      <div class="hud">
+        <span class="pill">Rodada: <strong id="round">1</strong>/3</span>
+        <span class="pill">Vidas Você: <strong id="livesP">3</strong></span>
+        <span class="pill">Vidas MORTE: <strong id="livesE">3</strong></span>
+        <span class="pill">Dash: <strong id="dash">OK</strong></span>
+        <button class="btn" id="btnStart">Iniciar</button>
+        <button class="btn" id="btnPause">Pausar</button>
+        <button class="btn" id="btnReset">Reset</button>
       </div>
     </div>
+    <canvas id="c" width="960" height="640"></canvas>
   </div>
 
-  <div class="overlay" id="overlay">
-    <div class="modal">
-      <h2 id="modalTitle">Voltar dos Mortos</h2>
-      <p id="modalText">Aperte Iniciar e siga o ritmo.</p>
-      <div class="row">
-        <button class="btn" id="modalPlay">Jogar</button>
-        <button class="btn" id="modalReset">Reset</button>
-        <button class="btn" id="modalClose">Fechar</button>
-      </div>
-      <div class="small" id="modalHint"></div>
+  <div class="card side">
+    <h3>Controles</h3>
+    <div class="grid">
+      <div class="k"><div class="key">W A S D</div><div class="desc">Mover</div></div>
+      <div class="k"><div class="key">Mouse</div><div class="desc">Mirar</div></div>
+      <div class="k"><div class="key">Clique / Espaço</div><div class="desc">Atirar</div></div>
+      <div class="k"><div class="key">Shift</div><div class="desc">Dash (cooldown)</div></div>
     </div>
+    <p>
+      A <strong>MORTE</strong> é agressiva: mira bem, dá dash e tenta te encurralar.
+      Cada “morte” = perdeu 1 vida. Ao zerar as 3 vidas, reinicia a rodada.
+    </p>
+    <div class="legend">
+      <div><span class="dot" style="background:var(--p1)"></span>Você (laranja)</div>
+      <div><span class="dot" style="background:var(--p2)"></span>A MORTE (azul)</div>
+      <div><span class="dot" style="background:var(--good)"></span>Derrote 3 rodadas = RENASCE</div>
+      <div><span class="dot" style="background:var(--bad)"></span>Se perder a rodada, tenta de novo</div>
+    </div>
+    <div class="small">Extras: <strong>R</strong> reset, <strong>Esc</strong> pausa.</div>
   </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2 id="mTitle">Rounds — MORTE</h2>
+    <p id="mText">Clique em “Jogar” e sobreviva.</p>
+    <div class="row">
+      <button class="btn" id="mPlay">Jogar</button>
+      <button class="btn" id="mReset">Reset</button>
+      <button class="btn" id="mClose">Fechar</button>
+    </div>
+    <div class="small" id="mHint"></div>
+  </div>
+</div>
 
 <script>
 (() => {
-  // ======== CONFIG ========
-  const TARGET_SCORE = 6700;
+  // ======= CANVAS =======
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d", { alpha:false });
 
-  // trilhas: 0=W, 1=A, 2=S, 3=D
-  const LANES = [
-    { key:"W", code:"KeyW" },
-    { key:"A", code:"KeyA" },
-    { key:"S", code:"KeyS" },
-    { key:"D", code:"KeyD" },
-  ];
-
-  const canvas = document.getElementById("game");
-  const ctx = canvas.getContext("2d", { alpha: false });
-
-  // UI
-  const $score = document.getElementById("score");
-  const $combo = document.getElementById("combo");
-  const $soul  = document.getElementById("soul");
-
+  // ======= UI =======
+  const $round = document.getElementById("round");
+  const $lP = document.getElementById("livesP");
+  const $lE = document.getElementById("livesE");
+  const $dash = document.getElementById("dash");
   const btnStart = document.getElementById("btnStart");
   const btnPause = document.getElementById("btnPause");
   const btnReset = document.getElementById("btnReset");
 
   const overlay = document.getElementById("overlay");
-  const modalTitle = document.getElementById("modalTitle");
-  const modalText = document.getElementById("modalText");
-  const modalHint = document.getElementById("modalHint");
-  const modalPlay = document.getElementById("modalPlay");
-  const modalReset = document.getElementById("modalReset");
-  const modalClose = document.getElementById("modalClose");
+  const mTitle = document.getElementById("mTitle");
+  const mText  = document.getElementById("mText");
+  const mHint  = document.getElementById("mHint");
+  const mPlay  = document.getElementById("mPlay");
+  const mReset = document.getElementById("mReset");
+  const mClose = document.getElementById("mClose");
 
-  // ======== GAME STATE ========
-  let running = false;
-  let paused = false;
-  let lastT = 0;
+  // ======= CONFIG =======
+  const MAX_ROUNDS = 3;          // matar a morte 3x
+  const LIVES_PER_ROUND = 3;     // cada um tem 3 vidas
+  const ARENA_PAD = 18;
 
-  let score = 0;
-  let combo = 0;
-  let soul = 100; // 0..100
+  // players
+  const R = 18; // raio das bolas
+  const P_SPEED = 240;
+  const E_SPEED = 255; // inimigo um pouco mais rápido
+  const FRICTION = 0.88; // suaviza movimento
 
-  // spawn control
-  let spawnTimer = 0;
-  let spawnEvery = 520; // ms base
+  // tiros
+  const BULLET_R = 5;
+  const BULLET_SPEED = 560;
+  const FIRE_CD = 180; // ms
+  const BULLET_LIFE = 1.25; // s
+  const KNOCKBACK = 140;
 
-  // notes
-  const notes = [];
-  let noteId = 1;
+  // dash
+  const DASH_CD = 1200; // ms
+  const DASH_TIME = 0.11; // s
+  const DASH_MULT = 3.3;
 
-  // feedback
-  const flashes = [0,0,0,0]; // lane flash intensity
-  let message = ""; // small HUD message
-  let messageTimer = 0;
+  // Hard AI
+  const AI_REACTION = 0.045; // menor = reage melhor
+  const AI_FIRE_ACC = 0.78;  // chance de atirar quando alinhado
+  const AI_DASH_CHANCE = 0.012;
+  const AI_STRAFE = 0.55;    // strafe pra ficar chato
 
-  // timing
-  const hitY = canvas.height - 110;
-  const hitWindowPerfect = 18; // px
-  const hitWindowGood = 34;    // px
+  // ======= STATE =======
+  let running=false, paused=false, lastT=0;
+  let round=1; // 1..3
+  let livesP=LIVES_PER_ROUND, livesE=LIVES_PER_ROUND;
+  let killsOnDeath=0;
 
-  // visuals
-  const laneW = canvas.width / 4;
-  const lanePadding = 14;
-  const noteRadius = 22;
+  const keys = Object.create(null);
+  let mouse = { x: canvas.width/2, y: canvas.height/2, down:false };
 
-  function resetGame() {
-    score = 0;
-    combo = 0;
-    soul = 100;
-    notes.length = 0;
-    noteId = 1;
-    spawnTimer = 0;
-    spawnEvery = 520;
-    message = "";
-    messageTimer = 0;
-    flashes.fill(0);
+  function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+  function len(x,y){ return Math.hypot(x,y); }
+
+  function showOverlay(title, text, hint=""){
+    mTitle.textContent = title;
+    mText.textContent = text;
+    mHint.textContent = hint;
+    overlay.classList.add("show");
+  }
+  function hideOverlay(){ overlay.classList.remove("show"); }
+
+  // ======= ENTITIES =======
+  const player = {
+    x: 170, y: canvas.height/2,
+    vx: 0, vy: 0,
+    dashCD: 0, dashT: 0,
+    fireCD: 0,
+    alive:true,
+  };
+
+  const enemy = {
+    x: canvas.width-170, y: canvas.height/2,
+    vx: 0, vy: 0,
+    dashCD: 0, dashT: 0,
+    fireCD: 0,
+    alive:true,
+    aimX: canvas.width/2, aimY: canvas.height/2, // mira suavizada
+  };
+
+  const bullets = []; // {x,y,vx,vy,life,from:"P"|"E"}
+
+  const obstacles = [
+    // retângulos simples (mapa 2D)
+    {x: canvas.width/2 - 70, y: canvas.height/2 - 140, w: 140, h: 44},
+    {x: canvas.width/2 - 70, y: canvas.height/2 + 96,  w: 140, h: 44},
+    {x: canvas.width/2 - 240, y: canvas.height/2 - 26, w: 110, h: 52},
+    {x: canvas.width/2 + 130, y: canvas.height/2 - 26, w: 110, h: 52},
+  ];
+
+  function resetPositions(){
+    player.x = 170; player.y = canvas.height/2;
+    player.vx = player.vy = 0;
+    player.dashT = 0;
+    player.fireCD = 0;
+
+    enemy.x = canvas.width-170; enemy.y = canvas.height/2;
+    enemy.vx = enemy.vy = 0;
+    enemy.dashT = 0;
+    enemy.fireCD = 0;
+    enemy.aimX = player.x; enemy.aimY = player.y;
+
+    bullets.length = 0;
+  }
+
+  function resetGame(){
+    round = 1;
+    killsOnDeath = 0;
+    livesP = LIVES_PER_ROUND;
+    livesE = LIVES_PER_ROUND;
+    running=false; paused=false;
+    resetPositions();
     updateHUD();
   }
 
   function updateHUD(){
-    $score.textContent = Math.floor(score);
-    $combo.textContent = combo;
-    $soul.textContent = Math.max(0, Math.min(100, Math.floor(soul)));
+    $round.textContent = round;
+    $lP.textContent = livesP;
+    $lE.textContent = livesE;
+    $dash.textContent = (player.dashCD<=0 ? "OK" : Math.ceil(player.dashCD/100)/10 + "s");
   }
 
-  function showOverlay(title, text, hint=""){
-    modalTitle.textContent = title;
-    modalText.textContent = text;
-    modalHint.textContent = hint;
-    overlay.classList.add("show");
-  }
-  function hideOverlay(){
-    overlay.classList.remove("show");
+  // ======= COLLISION =======
+  function circleRectCollide(cx, cy, cr, rx, ry, rw, rh){
+    const closestX = clamp(cx, rx, rx+rw);
+    const closestY = clamp(cy, ry, ry+rh);
+    const dx = cx - closestX;
+    const dy = cy - closestY;
+    return (dx*dx + dy*dy) <= cr*cr;
   }
 
-  function startGame(){
+  function pushOutOfRects(ent){
+    // resolve colisão de círculo com retângulos (simples)
+    for (const o of obstacles){
+      if (!circleRectCollide(ent.x, ent.y, R, o.x, o.y, o.w, o.h)) continue;
+
+      // empurra pelo menor eixo
+      const left = ent.x - o.x;
+      const right = (o.x + o.w) - ent.x;
+      const top = ent.y - o.y;
+      const bottom = (o.y + o.h) - ent.y;
+
+      const minX = Math.min(left, right);
+      const minY = Math.min(top, bottom);
+
+      if (minX < minY){
+        if (left < right) ent.x = o.x - R - 0.5;
+        else ent.x = o.x + o.w + R + 0.5;
+        ent.vx *= -0.35;
+      } else {
+        if (top < bottom) ent.y = o.y - R - 0.5;
+        else ent.y = o.y + o.h + R + 0.5;
+        ent.vy *= -0.35;
+      }
+    }
+  }
+
+  function keepInArena(ent){
+    const minX = ARENA_PAD + R;
+    const maxX = canvas.width - ARENA_PAD - R;
+    const minY = ARENA_PAD + R;
+    const maxY = canvas.height - ARENA_PAD - R;
+
+    if (ent.x < minX){ ent.x = minX; ent.vx *= -0.5; }
+    if (ent.x > maxX){ ent.x = maxX; ent.vx *= -0.5; }
+    if (ent.y < minY){ ent.y = minY; ent.vy *= -0.5; }
+    if (ent.y > maxY){ ent.y = maxY; ent.vy *= -0.5; }
+  }
+
+  function lineHitsRect(x1,y1,x2,y2, r){
+    // checa se "linha grossa" passa por retângulo (aprox)
+    for (const o of obstacles){
+      // expand rect por r
+      const rx = o.x - r, ry = o.y - r, rw = o.w + r*2, rh = o.h + r*2;
+      // amostragem simples
+      const steps = 10;
+      for (let i=0;i<=steps;i++){
+        const t = i/steps;
+        const x = x1 + (x2-x1)*t;
+        const y = y1 + (y2-y1)*t;
+        if (x>=rx && x<=rx+rw && y>=ry && y<=ry+rh) return true;
+      }
+    }
+    return false;
+  }
+
+  // ======= SHOOTING =======
+  function shoot(from){
+    const ent = (from==="P") ? player : enemy;
+    if (ent.fireCD > 0) return;
+
+    let ax, ay;
+    if (from==="P"){
+      ax = mouse.x; ay = mouse.y;
+    } else {
+      ax = enemy.aimX; ay = enemy.aimY;
+    }
+
+    const dx = ax - ent.x;
+    const dy = ay - ent.y;
+    const d = Math.max(1, len(dx,dy));
+    const vx = (dx/d) * BULLET_SPEED;
+    const vy = (dy/d) * BULLET_SPEED;
+
+    bullets.push({
+      x: ent.x + (dx/d)*(R+10),
+      y: ent.y + (dy/d)*(R+10),
+      vx, vy,
+      life: BULLET_LIFE,
+      from
+    });
+
+    ent.fireCD = FIRE_CD;
+  }
+
+  // ======= DAMAGE / ROUND =======
+  let banner = { text:"", t:0, color:"rgba(255,255,255,.9)" };
+
+  function setBanner(text, color="rgba(242,244,255,.92)", ms=700){
+    banner.text = text;
+    banner.color = color;
+    banner.t = ms;
+  }
+
+  function killPlayer(){
+    livesP -= 1;
+    updateHUD();
+    setBanner("VOCÊ MORREU (-1 vida)", "rgba(239,68,68,.92)", 800);
+    if (livesP <= 0){
+      // perdeu a rodada
+      paused = true;
+      showOverlay(
+        "Derrotado pela MORTE",
+        "Você perdeu as 3 vidas desta rodada. Respire e tente novamente.",
+        "No RPG: talvez uma consequência leve antes de tentar de novo (marca, visão, dívida)."
+      );
+      // reseta só a rodada (mantém round atual)
+      livesP = LIVES_PER_ROUND;
+      livesE = LIVES_PER_ROUND;
+      resetPositions();
+      updateHUD();
+    } else {
+      resetPositions();
+    }
+  }
+
+  function killEnemy(){
+    livesE -= 1;
+    updateHUD();
+    setBanner("A MORTE CAIU (-1 vida dela)", "rgba(34,197,94,.90)", 800);
+
+    if (livesE <= 0){
+      // ganhou a rodada
+      killsOnDeath += 1;
+      setBanner("VOCÊ VENCEU A RODADA!", "rgba(34,197,94,.92)", 900);
+
+      if (killsOnDeath >= MAX_ROUNDS){
+        paused = true;
+        showOverlay(
+          "RENASCIDO!",
+          "Você derrotou a MORTE 3 vezes. O destino cedeu… você voltou.",
+          "No RPG: descreva o renascimento (respiração volta, batimento, cor nos olhos) e um “preço” narrativo."
+        );
+        return;
+      }
+
+      round = killsOnDeath + 1;
+      livesP = LIVES_PER_ROUND;
+      livesE = LIVES_PER_ROUND;
+      resetPositions();
+      updateHUD();
+
+      paused = true;
+      showOverlay(
+        `Rodada ${round}/3`,
+        "A MORTE retorna mais irritada. Você sente o mundo puxando você de volta…",
+        "Clique em Jogar para continuar."
+      );
+    } else {
+      resetPositions();
+    }
+  }
+
+  function bulletHitsCircle(b, ent){
+    const dx = b.x - ent.x;
+    const dy = b.y - ent.y;
+    return (dx*dx + dy*dy) <= (R + BULLET_R)*(R + BULLET_R);
+  }
+
+  // ======= INPUT =======
+  window.addEventListener("keydown", (e) => {
+    if (e.repeat) return;
+    keys[e.code] = true;
+
+    if (e.code === "Escape"){
+      if (!running) return;
+      paused = !paused;
+      if (!paused){
+        lastT = performance.now();
+        requestAnimationFrame(loop);
+      }
+    }
+    if (e.code === "Space"){
+      e.preventDefault();
+      if (!running){
+        start();
+      } else if (!paused){
+        shoot("P");
+      }
+    }
+    if (e.code === "KeyR"){
+      hideOverlay();
+      resetGame();
+      draw();
+    }
+    if (e.code === "ShiftLeft" || e.code==="ShiftRight"){
+      // dash
+      if (!running || paused) return;
+      if (player.dashCD <= 0) player.dashT = DASH_TIME;
+    }
+  });
+  window.addEventListener("keyup", (e) => keys[e.code] = false);
+
+  canvas.addEventListener("mousemove", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = (e.clientX - rect.left) * (canvas.width / rect.width);
+    mouse.y = (e.clientY - rect.top) * (canvas.height / rect.height);
+  });
+  canvas.addEventListener("mousedown", () => { mouse.down=true; if(running && !paused) shoot("P"); });
+  window.addEventListener("mouseup", () => mouse.down=false);
+
+  // ======= BUTTONS =======
+  btnStart.addEventListener("click", () => { hideOverlay(); start(); });
+  btnPause.addEventListener("click", () => {
+    if (!running) return;
+    paused = !paused;
+    if (!paused){ lastT = performance.now(); requestAnimationFrame(loop); }
+  });
+  btnReset.addEventListener("click", () => { hideOverlay(); resetGame(); draw(); });
+
+  mPlay.addEventListener("click", () => {
+    hideOverlay();
+    if (!running) start();
+    else { paused=false; lastT = performance.now(); requestAnimationFrame(loop); }
+  });
+  mReset.addEventListener("click", () => { hideOverlay(); resetGame(); draw(); });
+  mClose.addEventListener("click", () => hideOverlay());
+  overlay.addEventListener("click", (e) => { if(e.target===overlay) hideOverlay(); });
+
+  // ======= GAME LOOP =======
+  function start(){
     if (!running){
       running = true;
       paused = false;
@@ -341,422 +564,317 @@
       requestAnimationFrame(loop);
     } else {
       paused = false;
-    }
-  }
-
-  function togglePause(){
-    if (!running) return;
-    paused = !paused;
-    if (!paused){
       lastT = performance.now();
       requestAnimationFrame(loop);
-    }
-  }
-
-  function endWin(){
-    paused = true;
-    running = true; // ainda está "no jogo", só travado
-    showOverlay(
-      "RENASCIMENTO!",
-      `Você alcançou ${TARGET_SCORE} pontos. A alma encontra o caminho de volta…`,
-      "No RPG: o personagem renasce (você decide o custo, marca, cicatriz ou consequência)."
-    );
-  }
-
-  function endLose(){
-    paused = true;
-    running = true;
-    showOverlay(
-      "A ALMA DESFIA...",
-      "Você falhou muitas vezes. A conexão com o corpo se rompeu por enquanto.",
-      "No RPG: tente de novo após descanso, ritual, ajuda de um aliado, ou pagando um preço."
-    );
-  }
-
-  function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
-
-  function spawnNote(){
-    // peso: às vezes vem "dupla" para aumentar tensão
-    const lane = Math.floor(Math.random() * 4);
-    notes.push({
-      id: noteId++,
-      lane,
-      y: -40,
-      speed: 260 + (Math.min(combo, 30) * 3), // acelera com combo
-      hit: false
-    });
-
-    // chance de uma segunda nota
-    if (Math.random() < 0.18){
-      const lane2 = (lane + 1 + Math.floor(Math.random()*3)) % 4;
-      notes.push({
-        id: noteId++,
-        lane: lane2,
-        y: -80,
-        speed: 250 + (Math.min(combo, 30) * 3),
-        hit: false
-      });
-    }
-  }
-
-  function gradeHit(note){
-    const dy = Math.abs(note.y - hitY);
-    if (dy <= hitWindowPerfect) return "perfect";
-    if (dy <= hitWindowGood) return "good";
-    return "miss";
-  }
-
-  function onKeyLane(laneIndex){
-    if (!running) return;
-    if (paused) return;
-
-    // nota mais próxima da linha nessa lane
-    let best = null;
-    let bestDy = Infinity;
-
-    for (const n of notes){
-      if (n.hit) continue;
-      if (n.lane !== laneIndex) continue;
-      const dy = Math.abs(n.y - hitY);
-      if (dy < bestDy){
-        bestDy = dy;
-        best = n;
-      }
-    }
-
-    flashes[laneIndex] = 1.0;
-
-    if (!best){
-      // nada para acertar: pequeno castigo
-      combo = 0;
-      soul = clamp(soul - 2, 0, 100);
-      message = "Vazio…";
-      messageTimer = 380;
-      updateHUD();
-      if (soul <= 0) endLose();
-      return;
-    }
-
-    const g = gradeHit(best);
-    if (g === "perfect"){
-      best.hit = true;
-      combo += 1;
-      score += 200 + Math.min(combo, 30) * 3;
-      soul = clamp(soul + 0.6, 0, 100);
-      message = "PERFEITO!";
-      messageTimer = 420;
-    } else if (g === "good"){
-      best.hit = true;
-      combo += 1;
-      score += 100 + Math.min(combo, 25) * 2;
-      soul = clamp(soul + 0.3, 0, 100);
-      message = "Bom!";
-      messageTimer = 360;
-    } else {
-      // apertou fora do tempo
-      combo = 0;
-      soul = clamp(soul - 5, 0, 100);
-      message = "ERRO!";
-      messageTimer = 420;
-    }
-
-    updateHUD();
-    if (score >= TARGET_SCORE) endWin();
-    if (soul <= 0) endLose();
-  }
-
-  function drawBackground(){
-    // fundo
-    ctx.fillStyle = "#070815";
-    ctx.fillRect(0,0,canvas.width, canvas.height);
-
-    // trilhas
-    for (let i=0;i<4;i++){
-      const x = i * laneW;
-      const flash = flashes[i];
-
-      // lane panel
-      ctx.fillStyle = "rgba(255,255,255,0.03)";
-      ctx.fillRect(x, 0, laneW, canvas.height);
-
-      // linhas laterais
-      ctx.fillStyle = "rgba(255,255,255,0.10)";
-      ctx.fillRect(x, 0, 1, canvas.height);
-
-      // glow flash quando tecla pressiona
-      if (flash > 0.001){
-        ctx.fillStyle = `rgba(139,92,246,${0.22*flash})`;
-        ctx.fillRect(x, 0, laneW, canvas.height);
-      }
-    }
-
-    // linha de acerto
-    ctx.fillStyle = "rgba(255,255,255,0.14)";
-    ctx.fillRect(0, hitY, canvas.width, 2);
-
-    // zona de acerto (visual)
-    ctx.fillStyle = "rgba(255,255,255,0.04)";
-    ctx.fillRect(0, hitY - hitWindowGood, canvas.width, hitWindowGood*2);
-
-    // teclas no rodapé
-    for (let i=0;i<4;i++){
-      const cx = i*laneW + laneW/2;
-      const cy = canvas.height - 55;
-
-      ctx.beginPath();
-      ctx.arc(cx, cy, 28, 0, Math.PI*2);
-      ctx.fillStyle = "rgba(255,255,255,0.06)";
-      ctx.fill();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "rgba(255,255,255,0.12)";
-      ctx.stroke();
-
-      ctx.fillStyle = "#f2f4ff";
-      ctx.font = "900 18px system-ui";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(LANES[i].key, cx, cy+1);
-    }
-
-    // barra de progresso para 6700
-    const pad = 18;
-    const barW = canvas.width - pad*2;
-    const barH = 12;
-    const bx = pad;
-    const by = 18;
-
-    ctx.fillStyle = "rgba(255,255,255,0.08)";
-    ctx.fillRect(bx, by, barW, barH);
-
-    const p = clamp(score / TARGET_SCORE, 0, 1);
-    ctx.fillStyle = "rgba(139,92,246,0.55)";
-    ctx.fillRect(bx, by, barW*p, barH);
-
-    ctx.strokeStyle = "rgba(255,255,255,0.12)";
-    ctx.strokeRect(bx, by, barW, barH);
-
-    ctx.fillStyle = "rgba(255,255,255,0.8)";
-    ctx.font = "600 12px system-ui";
-    ctx.textAlign = "left";
-    ctx.textBaseline = "bottom";
-    ctx.fillText("Caminho do Renascimento", bx, by-3);
-
-    // mensagem central
-    if (messageTimer > 0 && message){
-      ctx.font = "900 26px system-ui";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      const alpha = clamp(messageTimer/420, 0, 1);
-      ctx.fillStyle = `rgba(242,244,255,${alpha})`;
-      ctx.fillText(message, canvas.width/2, 90);
-    }
-
-    // status pausa
-    if (!running){
-      ctx.font = "900 34px system-ui";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillStyle = "rgba(242,244,255,0.9)";
-      ctx.fillText("APERTE INICIAR", canvas.width/2, canvas.height/2 - 20);
-      ctx.font = "600 14px system-ui";
-      ctx.fillStyle = "rgba(167,173,194,0.9)";
-      ctx.fillText("W A S D para acertar as notas. Espaço para pausar.", canvas.width/2, canvas.height/2 + 22);
-    } else if (paused){
-      ctx.font = "900 34px system-ui";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillStyle = "rgba(242,244,255,0.9)";
-      ctx.fillText("PAUSADO", canvas.width/2, canvas.height/2 - 10);
-      ctx.font = "600 14px system-ui";
-      ctx.fillStyle = "rgba(167,173,194,0.9)";
-      ctx.fillText("Aperte Espaço para voltar.", canvas.width/2, canvas.height/2 + 26);
-    }
-  }
-
-  function drawNotes(){
-    for (const n of notes){
-      if (n.hit) continue;
-      const cx = n.lane * laneW + laneW/2;
-      const y = n.y;
-
-      // corpo da nota
-      const glow = 0.22 + Math.min(combo, 30)*0.004;
-      ctx.beginPath();
-      ctx.arc(cx, y, noteRadius, 0, Math.PI*2);
-      ctx.fillStyle = `rgba(139,92,246,${glow})`;
-      ctx.fill();
-
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = "rgba(255,255,255,0.25)";
-      ctx.stroke();
-
-      // símbolo
-      ctx.fillStyle = "rgba(242,244,255,0.95)";
-      ctx.font = "900 16px system-ui";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(LANES[n.lane].key, cx, y+1);
     }
   }
 
   function update(dt){
-    // anima flash
-    for (let i=0;i<4;i++){
-      flashes[i] = Math.max(0, flashes[i] - dt*2.8);
+    // cooldowns
+    player.fireCD = Math.max(0, player.fireCD - dt*1000);
+    enemy.fireCD  = Math.max(0, enemy.fireCD  - dt*1000);
+    player.dashCD = Math.max(0, player.dashCD - dt*1000);
+    enemy.dashCD  = Math.max(0, enemy.dashCD  - dt*1000);
+
+    if (banner.t > 0){
+      banner.t -= dt*1000;
+      if (banner.t < 0) banner.t = 0;
     }
 
-    // mensagens
-    if (messageTimer > 0){
-      messageTimer -= dt*1000;
-      if (messageTimer <= 0){
-        messageTimer = 0;
-        message = "";
+    // ----- PLAYER MOVEMENT -----
+    let ax = 0, ay = 0;
+    if (keys["KeyW"]) ay -= 1;
+    if (keys["KeyS"]) ay += 1;
+    if (keys["KeyA"]) ax -= 1;
+    if (keys["KeyD"]) ax += 1;
+
+    const mag = Math.hypot(ax,ay) || 1;
+    ax /= mag; ay /= mag;
+
+    let speed = P_SPEED;
+    if (player.dashT > 0){
+      speed *= DASH_MULT;
+      player.dashT -= dt;
+      if (player.dashT <= 0){
+        player.dashT = 0;
+        player.dashCD = DASH_CD;
       }
     }
 
-    // spawn: quanto maior o combo, mais rápido gera notas
-    const comboBoost = Math.min(combo, 40);
-    const dynamicEvery = clamp(spawnEvery - comboBoost*6, 250, 520);
+    player.vx = (player.vx * FRICTION) + ax * speed * dt;
+    player.vy = (player.vy * FRICTION) + ay * speed * dt;
+    player.x += player.vx;
+    player.y += player.vy;
 
-    spawnTimer += dt*1000;
-    while (spawnTimer >= dynamicEvery){
-      spawnTimer -= dynamicEvery;
-      spawnNote();
-    }
+    keepInArena(player);
+    pushOutOfRects(player);
 
-    // mover notas
-    for (const n of notes){
-      if (n.hit) continue;
-      n.y += n.speed * dt;
-    }
+    // ----- ENEMY AI (HARD) -----
+    // mira suavizada (reação rápida)
+    enemy.aimX += (player.x - enemy.aimX) * (1 - Math.pow(AI_REACTION, dt*60));
+    enemy.aimY += (player.y - enemy.aimY) * (1 - Math.pow(AI_REACTION, dt*60));
 
-    // notas que passaram
-    for (const n of notes){
-      if (n.hit) continue;
-      if (n.y > hitY + hitWindowGood + 55){
-        // perdeu
-        n.hit = true; // remove
-        combo = 0;
-        soul = clamp(soul - 5, 0, 100);
-        message = "PERDEU!";
-        messageTimer = 360;
-        updateHUD();
-        if (soul <= 0) { endLose(); break; }
+    // decide movimento: aproximar + strafe + fugir se muito perto
+    const dx = player.x - enemy.x;
+    const dy = player.y - enemy.y;
+    const dist = Math.max(1, Math.hypot(dx,dy));
+    const nx = dx/dist, ny = dy/dist;
+
+    // strafe perpendicular
+    const sx = -ny, sy = nx;
+    const strafeDir = (Math.sin(performance.now()/220) > 0) ? 1 : -1;
+
+    // manter distância "chata"
+    const desired = 260;
+    let mx = nx, my = ny;
+    if (dist < 170){ mx = -nx; my = -ny; } // foge se muito perto
+    if (dist > desired){ mx = nx; my = ny; }
+
+    // adiciona strafe
+    mx = mx*(1-AI_STRAFE) + sx*AI_STRAFE*strafeDir;
+    my = my*(1-AI_STRAFE) + sy*AI_STRAFE*strafeDir;
+
+    const mm = Math.hypot(mx,my) || 1;
+    mx/=mm; my/=mm;
+
+    let es = E_SPEED;
+    if (enemy.dashT > 0){
+      es *= DASH_MULT;
+      enemy.dashT -= dt;
+      if (enemy.dashT <= 0){
+        enemy.dashT = 0;
+        enemy.dashCD = DASH_CD;
+      }
+    } else {
+      // chance de dash em hard (pra encurtar/escapar)
+      if (enemy.dashCD <= 0 && Math.random() < AI_DASH_CHANCE){
+        enemy.dashT = DASH_TIME;
       }
     }
 
-    // limpar notas já marcadas
-    // (mantém array leve)
-    for (let i=notes.length-1;i>=0;i--){
-      if (notes[i].hit) notes.splice(i,1);
+    enemy.vx = (enemy.vx * FRICTION) + mx * es * dt;
+    enemy.vy = (enemy.vy * FRICTION) + my * es * dt;
+    enemy.x += enemy.vx;
+    enemy.y += enemy.vy;
+
+    keepInArena(enemy);
+    pushOutOfRects(enemy);
+
+    // ----- AI SHOOT -----
+    // atira se tiver linha de visão aproximada e "alinhado"
+    const losBlocked = lineHitsRect(enemy.x, enemy.y, player.x, player.y, 8);
+    if (!losBlocked){
+      const align = Math.abs((dx/dist)*nx + (dy/dist)*ny); // ~1 sempre, mas ok
+      // condição simples: distância razoável e cooldown
+      if (enemy.fireCD <= 0 && dist < 520 && Math.random() < AI_FIRE_ACC){
+        shoot("E");
+      }
     }
+
+    // ----- BULLETS -----
+    for (let i=bullets.length-1;i>=0;i--){
+      const b = bullets[i];
+      b.x += b.vx * dt;
+      b.y += b.vy * dt;
+      b.life -= dt;
+
+      // colisão com paredes/arena
+      if (b.x < ARENA_PAD || b.x > canvas.width-ARENA_PAD || b.y < ARENA_PAD || b.y > canvas.height-ARENA_PAD){
+        bullets.splice(i,1);
+        continue;
+      }
+      // colisão com obstáculos
+      let hitObs=false;
+      for (const o of obstacles){
+        if (b.x>=o.x && b.x<=o.x+o.w && b.y>=o.y && b.y<=o.y+o.h){ hitObs=true; break; }
+      }
+      if (hitObs){
+        bullets.splice(i,1);
+        continue;
+      }
+      if (b.life <= 0){
+        bullets.splice(i,1);
+        continue;
+      }
+
+      // acerta player/enemy
+      if (b.from==="E"){
+        if (bulletHitsCircle(b, player)){
+          // knockback
+          const kdx = player.x - b.x, kdy = player.y - b.y;
+          const kd = Math.max(1, Math.hypot(kdx,kdy));
+          player.vx += (kdx/kd) * (KNOCKBACK*dt);
+          player.vy += (kdy/kd) * (KNOCKBACK*dt);
+
+          bullets.splice(i,1);
+          killPlayer();
+          continue;
+        }
+      } else {
+        if (bulletHitsCircle(b, enemy)){
+          const kdx = enemy.x - b.x, kdy = enemy.y - b.y;
+          const kd = Math.max(1, Math.hypot(kdx,kdy));
+          enemy.vx += (kdx/kd) * (KNOCKBACK*dt);
+          enemy.vy += (kdy/kd) * (KNOCKBACK*dt);
+
+          bullets.splice(i,1);
+          killEnemy();
+          continue;
+        }
+      }
+    }
+
+    updateHUD();
+  }
+
+  // ======= DRAW =======
+  function draw(){
+    // fundo
+    ctx.fillStyle = "#070815";
+    ctx.fillRect(0,0,canvas.width, canvas.height);
+
+    // arena border
+    ctx.strokeStyle = "rgba(255,255,255,0.10)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(ARENA_PAD, ARENA_PAD, canvas.width-ARENA_PAD*2, canvas.height-ARENA_PAD*2);
+
+    // obstáculos
+    for (const o of obstacles){
+      ctx.fillStyle = "rgba(255,255,255,0.06)";
+      ctx.fillRect(o.x,o.y,o.w,o.h);
+      ctx.strokeStyle = "rgba(255,255,255,0.12)";
+      ctx.strokeRect(o.x,o.y,o.w,o.h);
+    }
+
+    // mira do player
+    if (running){
+      ctx.beginPath();
+      ctx.arc(mouse.x, mouse.y, 6, 0, Math.PI*2);
+      ctx.fillStyle = "rgba(242,244,255,0.9)";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,0.25)";
+      ctx.stroke();
+    }
+
+    // bullets
+    for (const b of bullets){
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, BULLET_R, 0, Math.PI*2);
+      ctx.fillStyle = (b.from==="P") ? "rgba(251,146,60,0.95)" : "rgba(96,165,250,0.95)";
+      ctx.fill();
+    }
+
+    // player & enemy
+    drawBall(player.x, player.y, R, "rgba(251,146,60,0.95)", "VOCÊ");
+    drawBall(enemy.x, enemy.y, R, "rgba(96,165,250,0.95)", "MORTE");
+
+    // banner
+    if (banner.t > 0){
+      const a = clamp(banner.t/800, 0, 1);
+      ctx.font = "900 26px system-ui";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = banner.color.replace("0.92", String(a));
+      ctx.fillText(banner.text, canvas.width/2, 78);
+    }
+
+    // paused text
+    if (!running){
+      centerText("CLIQUE EM INICIAR", canvas.width/2, canvas.height/2 - 10, 34, "rgba(242,244,255,0.92)");
+      centerText("WASD move • Mouse mira • Clique/Espaço atira • Shift dash", canvas.width/2, canvas.height/2 + 28, 14, "rgba(167,173,194,0.95)");
+    } else if (paused){
+      centerText("PAUSADO", canvas.width/2, canvas.height/2 - 10, 34, "rgba(242,244,255,0.92)");
+      centerText("Pressione Esc para voltar", canvas.width/2, canvas.height/2 + 28, 14, "rgba(167,173,194,0.95)");
+    }
+
+    // progresso de renascimento (kills)
+    const pad = 18, w = 260, h = 10;
+    const x = canvas.width - pad - w;
+    const y = pad + 10;
+    ctx.fillStyle = "rgba(255,255,255,0.08)";
+    ctx.fillRect(x,y,w,h);
+    const p = clamp(killsOnDeath / MAX_ROUNDS, 0, 1);
+    ctx.fillStyle = "rgba(34,197,94,0.55)";
+    ctx.fillRect(x,y,w*p,h);
+    ctx.strokeStyle = "rgba(255,255,255,0.12)";
+    ctx.strokeRect(x,y,w,h);
+    ctx.font = "700 12px system-ui";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "bottom";
+    ctx.fillStyle = "rgba(255,255,255,0.75)";
+    ctx.fillText("Renascimento", x, y-3);
+  }
+
+  function centerText(txt,x,y,size,color){
+    ctx.font = `900 ${size}px system-ui`;
+    ctx.textAlign="center";
+    ctx.textBaseline="middle";
+    ctx.fillStyle = color;
+    ctx.fillText(txt,x,y);
+  }
+
+  function drawBall(x,y,r,color,label){
+    // glow
+    ctx.beginPath();
+    ctx.arc(x,y,r+10,0,Math.PI*2);
+    ctx.fillStyle = color.replace("0.95","0.12");
+    ctx.fill();
+
+    // body
+    ctx.beginPath();
+    ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(255,255,255,0.22)";
+    ctx.stroke();
+
+    // label
+    ctx.font = "800 11px system-ui";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.fillStyle = "rgba(242,244,255,0.92)";
+    ctx.fillText(label, x, y + r + 8);
   }
 
   function loop(t){
     if (!running) return;
-
     const dt = (t - lastT) / 1000;
     lastT = t;
 
     if (!paused){
-      update(dt);
+      update(Math.min(dt, 0.033)); // cap
     }
-
-    drawBackground();
-    drawNotes();
-
+    draw();
     requestAnimationFrame(loop);
   }
 
-  // ======== INPUT ========
-  window.addEventListener("keydown", (e) => {
-    if (e.repeat) return;
+  // ======= INIT =======
+  resetGame();
+  draw();
+  showOverlay(
+    "ROUNDS — A MORTE (HARD)",
+    "Você (laranja) enfrenta a MORTE (azul). 3 vidas cada. Venceu 3 rodadas? Você renasce.",
+    "Dica: use dash (Shift) pra desviar. A MORTE mira bem."
+  );
 
-    if (e.code === "Space"){
-      e.preventDefault();
-      if (!running){
-        startGame();
-      } else {
-        togglePause();
-      }
-      return;
-    }
-
-    if (e.code === "KeyR"){
-      resetGame();
-      running = false;
-      paused = false;
-      drawBackground();
-      drawNotes();
-      return;
-    }
-
-    const idx = LANES.findIndex(l => l.code === e.code);
-    if (idx !== -1){
-      e.preventDefault();
-      onKeyLane(idx);
-    }
-  });
-
-  // ======== BUTTONS ========
-  btnStart.addEventListener("click", () => {
+  // ======= STARTERS =======
+  function startFromOverlay(){
     hideOverlay();
     if (!running){
-      resetGame();
-      startGame();
-    } else {
+      running = true;
       paused = false;
-    }
-  });
-
-  btnPause.addEventListener("click", () => {
-    togglePause();
-  });
-
-  btnReset.addEventListener("click", () => {
-    hideOverlay();
-    resetGame();
-    running = false;
-    paused = false;
-    drawBackground();
-    drawNotes();
-  });
-
-  modalPlay.addEventListener("click", () => {
-    hideOverlay();
-    if (!running){
-      resetGame();
-      startGame();
+      lastT = performance.now();
+      requestAnimationFrame(loop);
     } else {
       paused = false;
       lastT = performance.now();
       requestAnimationFrame(loop);
     }
-  });
-
-  modalReset.addEventListener("click", () => {
-    hideOverlay();
-    resetGame();
-    running = false;
-    paused = false;
-    drawBackground();
-    drawNotes();
-  });
-
-  modalClose.addEventListener("click", () => hideOverlay());
-  overlay.addEventListener("click", (e) => { if (e.target === overlay) hideOverlay(); });
-
-  // ======== INIT ========
-  resetGame();
-  drawBackground();
-  drawNotes();
-
-  // tela inicial explicando
-  showOverlay(
-    "Voltar dos Mortos",
-    "Aperte as teclas W A S D no tempo certo. Chegou em 6700 pontos? Você renasce.",
-    "Dica: se quiser deixar mais difícil, eu posso colocar “ritmo fixo” tipo música e notas predefinidas."
-  );
+  }
+  // fix buttons
+  btnStart.addEventListener("click", startFromOverlay);
+  mPlay.addEventListener("click", startFromOverlay);
 })();
 </script>
 </body>
