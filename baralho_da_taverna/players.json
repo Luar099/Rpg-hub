@@ -1,0 +1,36 @@
+[
+  {
+    "id": "marcus",
+    "name": "Marcus",
+    "unlocked": [
+      "villager",
+      "warrior",
+      "archer",
+      "warlock",
+      "paladin"
+    ]
+  },
+  {
+    "id": "kuromi",
+    "name": "Kuromi",
+    "unlocked": [
+      "villager",
+      "warrior",
+      "archer",
+      "warlock",
+      "paladin"
+    ]
+  },
+  {
+    "id": "kayn",
+    "name": "Kayn",
+    "unlocked": [
+      "villager",
+      "warrior",
+      "archer",
+      "warlock",
+      "paladin",
+      "fire_mage"
+    ]
+  }
+]

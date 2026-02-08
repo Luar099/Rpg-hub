@@ -1,0 +1,844 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Baralho da Taverna</title>
+  <style>
+    :root{
+      --bg:#07070c;
+      --panel:rgba(16,18,28,.86);
+      --panel2:rgba(12,14,22,.78);
+      --line:rgba(255,255,255,.10);
+      --txt:#f2f4ff;
+      --muted:rgba(242,244,255,.70);
+      --wood1:#2a1b12;
+      --wood2:#3a2417;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      color:var(--txt);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(1200px 700px at 50% 0%, rgba(245,158,11,.10), transparent 60%),
+        radial-gradient(1000px 800px at 25% 100%, rgba(34,197,94,.08), transparent 60%),
+        var(--bg);
+      padding:16px;
+    }
+    .app{width:min(1200px,100%); margin:0 auto}
+    .shell{
+      border:1px solid var(--line);
+      border-radius:18px;
+      background: var(--panel);
+      box-shadow: 0 18px 60px rgba(0,0,0,.55);
+      overflow:hidden;
+    }
+    .topbar{
+      padding:12px 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      border-bottom:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), transparent);
+      flex-wrap:wrap;
+    }
+    .brand b{font-size:14.5px; letter-spacing:.2px}
+    .brand span{display:block; font-size:12px; color:var(--muted); margin-top:2px}
+    .hud{display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:flex-end; font-size:12px}
+    .pill{
+      padding:6px 10px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background: rgba(255,255,255,.03);
+      white-space:nowrap;
+    }
+    .pill strong{font-weight:850}
+    .btn{
+      cursor:pointer;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.06);
+      color:var(--txt);
+      padding:9px 12px;
+      border-radius:12px;
+      font-weight:700;
+    }
+    .btn:hover{background: rgba(255,255,255,.10)}
+    .btn.primary{
+      border-color: rgba(245,158,11,.35);
+      background: rgba(245,158,11,.14);
+    }
+    .btn.primary:hover{background: rgba(245,158,11,.20)}
+    .btn:disabled{opacity:.5; cursor:not-allowed}
+
+    .screen{display:none; padding:14px}
+    .screen.active{display:block}
+
+    .hero{
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:18px;
+      padding:16px;
+      background: radial-gradient(1100px 500px at 50% 10%, rgba(255,255,255,.06), transparent 60%), var(--panel2);
+    }
+    .hero h1{margin:0; font-size:18px}
+    .hero p{margin:8px 0 0 0; color:var(--muted); line-height:1.35; font-size:13px}
+    .row{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; align-items:flex-end}
+    label{font-size:12px; color:var(--muted)}
+    input, select{
+      width: 320px;
+      max-width: 100%;
+      padding:10px 10px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.25);
+      color: var(--txt);
+      outline:none;
+    }
+    .hint{font-size:12px; color:var(--muted); margin-top:8px}
+
+    .deckWrap{
+      display:grid;
+      grid-template-columns: 1fr 360px;
+      gap:14px;
+    }
+    @media (max-width: 980px){
+      .deckWrap{grid-template-columns:1fr}
+    }
+    .panel{
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:18px;
+      padding:12px;
+      background: rgba(0,0,0,.18);
+    }
+    .panel h3{margin:0 0 8px 0; font-size:13.5px}
+    .mini{color:var(--muted); font-size:12px; line-height:1.35}
+
+    .gridCards{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:10px;
+      margin-top:10px;
+    }
+    @media (max-width: 980px){
+      .gridCards{grid-template-columns: repeat(2, 1fr)}
+    }
+    .cCard{
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:16px;
+      background: rgba(0,0,0,.20);
+      overflow:hidden;
+      cursor:pointer;
+      transition: transform .08s ease, background .08s ease;
+      user-select:none;
+    }
+    .cCard:hover{transform: translateY(-1px); background: rgba(0,0,0,.26)}
+    .cTop{
+      height:76px;
+      background: rgba(255,255,255,.06);
+      position:relative;
+    }
+    .cTop img{width:100%; height:100%; object-fit:cover; display:block}
+    .badge{
+      position:absolute;
+      top:8px; left:8px;
+      background: rgba(0,0,0,.55);
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:999px;
+      padding:3px 7px;
+      font-size:11px;
+    }
+    .cBody{padding:10px}
+    .cBody b{font-size:12.5px}
+    .statrow{display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; font-size:11px; color:rgba(242,244,255,.85)}
+    .tag{
+      padding:2px 6px;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:999px;
+      background: rgba(255,255,255,.04);
+    }
+    .picked{
+      outline: 2px solid rgba(245,158,11,.55);
+      box-shadow: 0 0 0 4px rgba(245,158,11,.12);
+    }
+
+    .table{
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.10);
+      background:
+        radial-gradient(1200px 520px at 50% 30%, rgba(255,255,255,.05), transparent 60%),
+        repeating-linear-gradient(90deg, rgba(0,0,0,.06) 0 6px, rgba(255,255,255,.02) 6px 12px),
+        linear-gradient(180deg, var(--wood2), var(--wood1));
+      padding:14px;
+      overflow:hidden;
+    }
+    .laneLabel{
+      margin-top:10px;
+      font-size:12px;
+      color:rgba(242,244,255,.86);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .board{
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap:10px;
+      margin-top:8px;
+    }
+    .slot{
+      height:92px;
+      border-radius:14px;
+      border:1px dashed rgba(255,255,255,.18);
+      background: rgba(0,0,0,.12);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+      overflow:hidden;
+    }
+    .slot.filled{
+      border-style:solid;
+      border-color: rgba(255,255,255,.14);
+      background: rgba(0,0,0,.18);
+    }
+    .slot small{color:rgba(167,173,194,.8); font-size:11px}
+    .slot .miniCard{
+      position:absolute;
+      inset:8px;
+      display:grid;
+      grid-template-columns: 56px 1fr;
+      gap:8px;
+      align-items:center;
+    }
+    .thumb{
+      width:56px; height:56px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      overflow:hidden;
+      display:flex; align-items:center; justify-content:center;
+      font-size:11px; color:rgba(255,255,255,.7);
+    }
+    .thumb img{width:100%; height:100%; object-fit:cover}
+    .miniCard b{font-size:12px}
+
+    .log{
+      margin-top:12px;
+      padding:10px;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:14px;
+      background: rgba(0,0,0,.16);
+      max-height:190px;
+      overflow:auto;
+      font-size:12px;
+      line-height:1.35;
+      color:rgba(242,244,255,.88);
+    }
+    .muted{color:rgba(167,173,194,.92)}
+    .sep{height:1px; background:rgba(255,255,255,.10); margin:10px 0}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="shell">
+      <div class="topbar">
+        <div class="brand">
+          <b>Baralho da Taverna</b>
+          <span id="subtitle">Começar → Montar Deck → Jogo</span>
+        </div>
+        <div class="hud">
+          <span class="pill">Você: ❤️ <strong id="hpP">20</strong> • 🔷 <strong id="manaP">3</strong></span>
+          <span class="pill">Oponente: ❤️ <strong id="hpE">20</strong> • 🔷 <strong id="manaE">3</strong></span>
+          <button class="btn" id="btnToStart">Início</button>
+          <button class="btn" id="btnToDeck">Deck</button>
+          <button class="btn" id="btnToGame">Jogo</button>
+        </div>
+      </div>
+
+      <div class="screen active" id="screenStart">
+        <div class="hero">
+          <h1>Entrar no Duelo</h1>
+          <p>
+            Escolha seu nome para carregar suas cartas. Depois monte um deck de <b>5 cartas</b>.
+            No jogo, você coloca cartas clicando nos slots do seu lado (gasta mana) e avança o turno.
+          </p>
+
+          <div class="row">
+            <div>
+              <label>Seu nome</label>
+              <select id="playerName"></select>
+              <div class="hint" id="nameHint">Carregando nomes…</div>
+            </div>
+
+            <div>
+              <label>Oponente (boss)</label>
+              <select id="opponentSelect"></select>
+              <div class="hint">Você controla os bosses em <b>opponents.json</b>.</div>
+            </div>
+
+            <button class="btn primary" id="btnStartFlow">Começar</button>
+          </div>
+        </div>
+
+        <div class="hint" style="margin-top:12px">
+          ✅ Se algum arquivo JSON estiver faltando, o jogo avisa no log.
+        </div>
+      </div>
+
+      <div class="screen" id="screenDeck">
+        <div class="deckWrap">
+          <div class="panel">
+            <h3>Cartas desbloqueadas</h3>
+            <div class="mini" id="deckInfo">Escolha o nome na tela de início.</div>
+            <div class="gridCards" id="cardGrid"></div>
+          </div>
+
+          <div class="panel">
+            <h3>Seu deck (5 cartas)</h3>
+            <div class="mini" id="pickHint">Selecione 5 cartas para travar.</div>
+            <div class="sep"></div>
+            <button class="btn primary" id="btnLock">Travar 5 cartas</button>
+            <button class="btn" id="btnClearPick" style="margin-top:8px">Limpar seleção</button>
+            <div class="sep"></div>
+            <div class="mini">Depois de travar, vá para a aba <b>Jogo</b>.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen" id="screenGame">
+        <div class="panel">
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between">
+            <div class="mini">
+              <b>Como jogar:</b> clique nos slots do seu lado para colocar cartas (gasta mana). Depois clique em <b>Próximo Turno</b>.
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap">
+              <button class="btn primary" id="btnMatchStart">Jogar</button>
+              <button class="btn" id="btnStep">Próximo Turno</button>
+              <button class="btn" id="btnReset">Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="table" style="margin-top:12px">
+          <div class="laneLabel"><span><b>Oponente</b> — Traseira</span><span class="muted">clique só no seu lado</span></div>
+          <div class="board" id="E_back"></div>
+
+          <div class="laneLabel"><span>Oponente — Média</span><span class="muted"></span></div>
+          <div class="board" id="E_mid"></div>
+
+          <div class="laneLabel"><span>Oponente — Frontal</span><span class="muted"></span></div>
+          <div class="board" id="E_front"></div>
+
+          <div class="sep"></div>
+
+          <div class="laneLabel"><span><b>Você</b> — Frontal</span><span class="muted">clique para colocar</span></div>
+          <div class="board" id="P_front"></div>
+
+          <div class="laneLabel"><span>Você — Média</span><span class="muted"></span></div>
+          <div class="board" id="P_mid"></div>
+
+          <div class="laneLabel"><span>Você — Traseira</span><span class="muted"></span></div>
+          <div class="board" id="P_back"></div>
+        </div>
+
+        <div class="log" id="log"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const DATA = { cards:null, players:null, opponents:null };
+
+  async function loadJson(path){
+    const r = await fetch(path, { cache:"no-store" });
+    if(!r.ok) throw new Error(`Falha ao carregar ${path}`);
+    return await r.json();
+  }
+
+  const UI = {
+    subtitle: document.getElementById("subtitle"),
+    scrStart: document.getElementById("screenStart"),
+    scrDeck:  document.getElementById("screenDeck"),
+    scrGame:  document.getElementById("screenGame"),
+    btnToStart: document.getElementById("btnToStart"),
+    btnToDeck:  document.getElementById("btnToDeck"),
+    btnToGame:  document.getElementById("btnToGame"),
+    playerName: document.getElementById("playerName"),
+    nameHint: document.getElementById("nameHint"),
+    oppSelect: document.getElementById("opponentSelect"),
+    btnStartFlow: document.getElementById("btnStartFlow"),
+    deckInfo: document.getElementById("deckInfo"),
+    grid: document.getElementById("cardGrid"),
+    pickHint: document.getElementById("pickHint"),
+    btnLock: document.getElementById("btnLock"),
+    btnClearPick: document.getElementById("btnClearPick"),
+    hpP: document.getElementById("hpP"),
+    hpE: document.getElementById("hpE"),
+    manaP: document.getElementById("manaP"),
+    manaE: document.getElementById("manaE"),
+    btnMatchStart: document.getElementById("btnMatchStart"),
+    btnStep: document.getElementById("btnStep"),
+    btnReset: document.getElementById("btnReset"),
+    log: document.getElementById("log"),
+  };
+
+  const BOARDS = {
+    E_back:  document.getElementById("E_back"),
+    E_mid:   document.getElementById("E_mid"),
+    E_front: document.getElementById("E_front"),
+    P_back:  document.getElementById("P_back"),
+    P_mid:   document.getElementById("P_mid"),
+    P_front: document.getElementById("P_front"),
+  };
+
+  function showScreen(which){
+    UI.scrStart.classList.toggle("active", which==="start");
+    UI.scrDeck.classList.toggle("active", which==="deck");
+    UI.scrGame.classList.toggle("active", which==="game");
+    UI.subtitle.textContent = which==="start" ? "Começar" : which==="deck" ? "Montar Deck" : "Jogo";
+  }
+  UI.btnToStart.addEventListener("click", ()=>showScreen("start"));
+  UI.btnToDeck.addEventListener("click", ()=>showScreen("deck"));
+  UI.btnToGame.addEventListener("click", ()=>showScreen("game"));
+
+  const GAME = {
+    phase: "pick",
+    locked: false,
+    picks: [],
+    playerId: null,
+    opponentId: null,
+    hpP: 20, hpE: 20,
+    manaP: 3, manaE: 3,
+    manaMax: 6,
+    turn: 1,
+    lanes: {
+      P_front:[null,null,null,null],
+      P_mid:[null,null,null,null],
+      P_back:[null,null,null,null],
+      E_front:[null,null,null,null],
+      E_mid:[null,null,null,null],
+      E_back:[null,null,null,null],
+    },
+    handP: [],
+    handE: [],
+  };
+
+  function logLine(html){ UI.log.innerHTML = `<div>${html}</div>` + UI.log.innerHTML; }
+  function setHUD(){
+    UI.hpP.textContent = GAME.hpP;
+    UI.hpE.textContent = GAME.hpE;
+    UI.manaP.textContent = GAME.manaP;
+    UI.manaE.textContent = GAME.manaE;
+  }
+  function cardDef(id){ return DATA.cards.find(c=>c.id===id) || null; }
+  function cloneCard(id){
+    const c = cardDef(id);
+    if(!c) return null;
+    return {
+      id:c.id, name:c.name,
+      cost:c.cost ?? 1,
+      hp:c.hp ?? 1,
+      atk:c.atk ?? 1,
+      ini:c.ini ?? 1,
+      lane:c.lane ?? "any",
+      img:c.img ?? "",
+      ability:c.ability ?? null
+    };
+  }
+  function laneTypeFromBoard(key){
+    if (key.endsWith("front")) return "front";
+    if (key.endsWith("mid")) return "mid";
+    return "back";
+  }
+
+  function makeSlots(containerId){
+    const el = BOARDS[containerId];
+    el.innerHTML = "";
+    for(let i=0;i<4;i++){
+      const s=document.createElement("div");
+      s.className="slot";
+      s.innerHTML="<small>Vazio</small>";
+      el.appendChild(s);
+      s.addEventListener("click", ()=>{
+        if(GAME.phase!=="running") return;
+        if(!containerId.startsWith("P_")) return;
+        placeFromHandToSlot(containerId, i);
+      });
+    }
+  }
+
+  function renderBoard(){
+    for(const k of Object.keys(BOARDS)){
+      const el = BOARDS[k];
+      const arr = GAME.lanes[k];
+      [...el.children].forEach((slotEl,i)=>{
+        const inst = arr[i];
+        if(!inst){
+          slotEl.className="slot";
+          slotEl.innerHTML="<small>Vazio</small>";
+          return;
+        }
+        slotEl.className="slot filled";
+        const imgHtml = inst.img ? `<img src="${inst.img}" alt="">` : "";
+        slotEl.innerHTML = `
+          <div class="miniCard">
+            <div class="thumb">${imgHtml || "<span>Sem img</span>"}</div>
+            <div>
+              <b>${inst.name}</b>
+              <div class="statrow">
+                <span class="tag">❤️ ${inst.hp}</span>
+                <span class="tag">⚔️ ${inst.atk}</span>
+                <span class="tag">⏱️ ${inst.ini}</span>
+                <span class="tag">🔷 ${inst.cost}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    }
+  }
+
+  function renderCardGrid(unlockedIds){
+    UI.grid.innerHTML = "";
+    const unlocked = unlockedIds.map(cardDef).filter(Boolean);
+    unlocked.forEach(c=>{
+      const div=document.createElement("div");
+      div.className="cCard";
+      div.dataset.id=c.id;
+      const img = c.img ? `<img src="${c.img}" alt="">` : "";
+      div.innerHTML = `
+        <div class="cTop">${img}<div class="badge">🔷 ${c.cost ?? 1}</div></div>
+        <div class="cBody">
+          <b>${c.name}</b>
+          <div class="statrow">
+            <span class="tag">❤️ ${c.hp}</span>
+            <span class="tag">⚔️ ${c.atk}</span>
+            <span class="tag">⏱️ ${c.ini}</span>
+          </div>
+          <div class="mini" style="margin-top:6px">${(c.ability && c.ability.text) ? c.ability.text : "—"}</div>
+        </div>
+      `;
+      div.addEventListener("click", ()=>{
+        if(GAME.locked) return;
+        togglePick(c.id, div);
+      });
+      UI.grid.appendChild(div);
+    });
+    [...UI.grid.children].forEach(el=>{
+      if(GAME.picks.includes(el.dataset.id)) el.classList.add("picked");
+    });
+  }
+
+  function togglePick(cardId, el){
+    const idx = GAME.picks.indexOf(cardId);
+    if(idx>=0){
+      GAME.picks.splice(idx,1);
+      el.classList.remove("picked");
+    } else {
+      if(GAME.picks.length>=5){
+        UI.pickHint.textContent="Você só pode escolher 5.";
+        return;
+      }
+      GAME.picks.push(cardId);
+      el.classList.add("picked");
+    }
+    UI.pickHint.textContent = `Selecionadas: ${GAME.picks.length}/5`;
+  }
+  function clearPick(){
+    GAME.picks = [];
+    [...UI.grid.children].forEach(el=>el.classList.remove("picked"));
+    UI.pickHint.textContent="Selecione 5 cartas para travar.";
+  }
+  function lockDeck(){
+    if(GAME.picks.length!==5){
+      UI.pickHint.textContent="Escolha exatamente 5.";
+      return;
+    }
+    GAME.locked = true;
+    UI.pickHint.textContent="Deck travado. Vá para o Jogo.";
+    logLine(`<b>✅ Deck travado:</b> ${GAME.picks.map(id=>cardDef(id)?.name||id).join(", ")}`);
+  }
+
+  function resetMatchState(keepSelection=true){
+    GAME.phase="pick";
+    GAME.turn=1;
+    GAME.hpP=20; GAME.hpE=20;
+    GAME.manaP=3; GAME.manaE=3;
+    for(const k of Object.keys(GAME.lanes)) GAME.lanes[k]=[null,null,null,null];
+    GAME.handP=[]; GAME.handE=[];
+    setHUD();
+    renderBoard();
+    UI.btnStep.disabled = true;
+    UI.btnMatchStart.disabled = false;
+    if(!keepSelection){
+      GAME.locked=false;
+      clearPick();
+    }
+  }
+
+  function placeFromHandToSlot(boardKey, slotIndex){
+    if(GAME.handP.length===0){ logLine(`<span class="muted">Você não tem mais cartas na mão.</span>`); return; }
+    if(GAME.lanes[boardKey][slotIndex]){ logLine(`<span class="muted">Slot ocupado.</span>`); return; }
+    const laneType = laneTypeFromBoard(boardKey);
+
+    let chosenIdx=-1;
+    for(let i=0;i<GAME.handP.length;i++){
+      const inst=GAME.handP[i];
+      if(inst.cost>GAME.manaP) continue;
+      if(inst.lane!=="any" && inst.lane!==laneType) continue;
+      chosenIdx=i; break;
+    }
+    if(chosenIdx<0){ logLine(`<span class="muted">Sem carta compatível (ou sem mana) pra essa linha.</span>`); return; }
+
+    const inst = GAME.handP.splice(chosenIdx,1)[0];
+    GAME.manaP -= inst.cost;
+    GAME.lanes[boardKey][slotIndex] = inst;
+    setHUD(); renderBoard();
+    logLine(`<b>Você</b> colocou <b>${inst.name}</b> na linha <b>${laneType.toUpperCase()}</b>.`);
+  }
+
+  function opponentById(id){ return DATA.opponents.find(o=>o.id===id) || null; }
+  function enemyAutoPlace(){
+    if(GAME.handE.length===0) return;
+    const order=["E_front","E_mid","E_back"];
+    for(const boardKey of order){
+      const laneType=laneTypeFromBoard(boardKey);
+      const idx = GAME.lanes[boardKey].findIndex(x=>!x);
+      if(idx<0) continue;
+
+      let pick=-1;
+      for(let i=0;i<GAME.handE.length;i++){
+        const inst=GAME.handE[i];
+        if(inst.cost>GAME.manaE) continue;
+        if(inst.lane!=="any" && inst.lane!==laneType) continue;
+        pick=i; break;
+      }
+      if(pick<0) continue;
+
+      const inst = GAME.handE.splice(pick,1)[0];
+      GAME.manaE -= inst.cost;
+      GAME.lanes[boardKey][idx]=inst;
+      logLine(`<b>Oponente</b> colocou <b>${inst.name}</b> na linha <b>${laneType.toUpperCase()}</b>.`);
+      return;
+    }
+  }
+
+  function allUnits(sidePrefix){
+    const keys = sidePrefix==="P" ? ["P_front","P_mid","P_back"] : ["E_front","E_mid","E_back"];
+    const out=[];
+    for(const k of keys){
+      for(let i=0;i<4;i++){
+        const u = GAME.lanes[k][i];
+        if(u) out.push({side:sidePrefix, laneKey:k, slot:i, u});
+      }
+    }
+    return out;
+  }
+  function firstTarget(sidePrefix){
+    const keys = sidePrefix==="P" ? ["P_front","P_mid","P_back"] : ["E_front","E_mid","E_back"];
+    for(const k of keys){
+      for(let i=0;i<4;i++){
+        const u=GAME.lanes[k][i];
+        if(u) return {laneKey:k, slot:i, u};
+      }
+    }
+    return null;
+  }
+
+  function resolveCombat(){
+    const units = [...allUnits("P"), ...allUnits("E")];
+    units.sort((a,b)=> (b.u.ini-a.u.ini) || (Math.random()-0.5));
+
+    for(const actor of units){
+      const alive = GAME.lanes[actor.laneKey][actor.slot];
+      if(!alive) continue;
+
+      const enemySide = actor.side==="P" ? "E" : "P";
+      const target = firstTarget(enemySide);
+
+      const fireBonus = (alive.id === "fire_mage") ? 1 : 0;
+
+      if(!target){
+        if(enemySide==="E"){
+          GAME.hpE -= alive.atk;
+          if(fireBonus){ GAME.hpE -= fireBonus; logLine(`<b>${alive.name}</b> queimou o oponente: <b>-${fireBonus} ❤️</b>`); }
+          logLine(`<b>${alive.name}</b> acertou o <b>Oponente</b>: <b>-${alive.atk} ❤️</b>`);
+          if(GAME.hpE<=0) return;
+        } else {
+          GAME.hpP -= alive.atk;
+          if(fireBonus){ GAME.hpP -= fireBonus; logLine(`<b>${alive.name}</b> queimou você: <b>-${fireBonus} ❤️</b>`); }
+          logLine(`<b>${alive.name}</b> acertou <b>Você</b>: <b>-${alive.atk} ❤️</b>`);
+          if(GAME.hpP<=0) return;
+        }
+        continue;
+      }
+
+      target.u.hp -= alive.atk;
+      logLine(`<b>${alive.name}</b> atacou <b>${target.u.name}</b>: <b>-${alive.atk} ❤️</b>`);
+
+      if(fireBonus){
+        if(enemySide==="E"){ GAME.hpE -= fireBonus; logLine(`<b>${alive.name}</b> causou dano direto: <b>-${fireBonus} ❤️</b>`); }
+        else { GAME.hpP -= fireBonus; logLine(`<b>${alive.name}</b> causou dano direto: <b>-${fireBonus} ❤️</b>`); }
+      }
+
+      if(target.u.hp<=0){
+        logLine(`<span class="muted"><b>${target.u.name}</b> caiu!</span>`);
+        GAME.lanes[target.laneKey][target.slot]=null;
+      }
+    }
+  }
+
+  function endIfNeeded(){
+    if(GAME.hpP<=0){
+      GAME.phase="ended";
+      UI.btnStep.disabled=true;
+      UI.btnMatchStart.disabled=true;
+      logLine(`<span style="color:rgba(239,68,68,.92)"><b>DERROTA.</b></span>`);
+      return true;
+    }
+    if(GAME.hpE<=0){
+      GAME.phase="ended";
+      UI.btnStep.disabled=true;
+      UI.btnMatchStart.disabled=true;
+      logLine(`<span style="color:rgba(34,197,94,.92)"><b>VITÓRIA!</b></span>`);
+      return true;
+    }
+    return false;
+  }
+
+  function startMatch(){
+    if(!GAME.playerId){ logLine(`<span class="muted">Escolha seu nome e clique em Começar.</span>`); return; }
+    if(!GAME.opponentId){ logLine(`<span class="muted">Selecione um oponente.</span>`); return; }
+    if(!GAME.locked){ logLine(`<span class="muted">Trave suas 5 cartas primeiro.</span>`); return; }
+
+    GAME.handP = GAME.picks.map(cloneCard).filter(Boolean);
+
+    const opp = opponentById(GAME.opponentId);
+    let oppIds = [];
+    if(opp.deckMode==="all") oppIds = DATA.cards.map(c=>c.id);
+    else oppIds = opp.deck || [];
+
+    if(opp.fixedFive && opp.fixedFive.length===5){
+      GAME.handE = opp.fixedFive.map(cloneCard).filter(Boolean);
+    } else {
+      const pool = oppIds.map(cardDef).filter(Boolean);
+      const chosen=[];
+      while(chosen.length<5 && pool.length){
+        chosen.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0].id);
+      }
+      GAME.handE = chosen.map(cloneCard).filter(Boolean);
+    }
+
+    for(const k of Object.keys(GAME.lanes)) GAME.lanes[k]=[null,null,null,null];
+    GAME.hpP = opp.playerHP ?? 20;
+    GAME.hpE = opp.enemyHP ?? 20;
+    GAME.manaP = 3; GAME.manaE = 3;
+    GAME.turn = 1;
+    GAME.phase="running";
+
+    setHUD();
+    renderBoard();
+    UI.btnStep.disabled=false;
+    UI.btnMatchStart.disabled=true;
+
+    logLine(`<b>🎴 Duelo:</b> Você vs <b>${opp.name}</b>`);
+    logLine(`<span class="muted">Clique nos slots do seu lado para colocar cartas.</span>`);
+  }
+
+  function nextTurn(){
+    if(GAME.phase!=="running") return;
+    GAME.manaP = Math.min(GAME.manaMax, GAME.manaP+1);
+    GAME.manaE = Math.min(GAME.manaMax, GAME.manaE+1);
+    logLine(`<div class="sep"></div><b>— Turno ${GAME.turn} —</b> <span class="muted">(mana +1)</span>`);
+    enemyAutoPlace();
+    resolveCombat();
+    setHUD();
+    renderBoard();
+    if(endIfNeeded()) return;
+    GAME.turn += 1;
+  }
+
+  function playerByName(name){
+    const n=name.trim().toLowerCase();
+    return DATA.players.find(p=>p.name.toLowerCase()===n) || null;
+  }
+
+  UI.btnStartFlow.addEventListener("click", ()=>{
+    const selectedName = UI.playerName.value;
+    const p = playerByName(selectedName);
+
+    if(!p){ UI.nameHint.textContent = "Escolha seu nome na lista."; return; }
+    if(!UI.oppSelect.value){ UI.nameHint.textContent = "Selecione um oponente."; return; }
+
+    GAME.playerId = p.id;
+    GAME.opponentId = UI.oppSelect.value;
+
+    GAME.locked = false;
+    clearPick();
+    renderCardGrid(p.unlocked || []);
+    UI.deckInfo.textContent = `${p.name}: ${(p.unlocked||[]).length} cartas desbloqueadas.`;
+    UI.pickHint.textContent = "Selecione 5 cartas para travar.";
+    UI.nameHint.textContent = `Player carregado: ${p.name}. Agora monte seu deck.`;
+
+    resetMatchState(true);
+    showScreen("deck");
+  });
+
+  UI.btnLock.addEventListener("click", lockDeck);
+  UI.btnClearPick.addEventListener("click", ()=>{ GAME.locked=false; clearPick(); });
+
+  UI.btnMatchStart.addEventListener("click", startMatch);
+  UI.btnStep.addEventListener("click", nextTurn);
+  UI.btnReset.addEventListener("click", ()=>{
+    UI.log.innerHTML = "";
+    resetMatchState(true);
+    logLine(`<span class="muted">Resetado.</span>`);
+    UI.btnMatchStart.disabled = false;
+    UI.btnStep.disabled = true;
+    GAME.phase="pick";
+  });
+
+  async function init(){
+    for(const k of Object.keys(BOARDS)) makeSlots(k);
+    setHUD();
+    UI.btnStep.disabled = true;
+
+    try{
+      DATA.cards = await loadJson("cards.json");
+      DATA.players = await loadJson("players.json");
+      DATA.opponents = await loadJson("opponents.json");
+
+      UI.playerName.innerHTML = `<option value="">— Selecione —</option>`;
+      DATA.players.forEach(p=>{
+        const opt=document.createElement("option");
+        opt.value=p.name;
+        opt.textContent=p.name;
+        UI.playerName.appendChild(opt);
+      });
+      UI.nameHint.textContent = "Escolha seu nome na lista.";
+
+      UI.oppSelect.innerHTML = `<option value="">— Selecione —</option>`;
+      DATA.opponents.forEach(o=>{
+        const opt=document.createElement("option");
+        opt.value=o.id;
+        opt.textContent=o.name;
+        UI.oppSelect.appendChild(opt);
+      });
+
+      logLine(`<span class="muted">Pronto. Escolha nome e oponente.</span>`);
+    }catch(e){
+      UI.log.innerHTML = "";
+      UI.nameHint.textContent = "Erro ao carregar JSON.";
+      logLine(`<span style="color:rgba(239,68,68,.92)"><b>ERRO:</b> ${String(e.message||e)}</span>`);
+      logLine(`<span class="muted">Confere se index.html, cards.json, players.json, opponents.json estão juntos.</span>`);
+    }
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

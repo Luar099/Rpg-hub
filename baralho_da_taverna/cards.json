@@ -1,0 +1,119 @@
+[
+  {
+    "id": "villager",
+    "name": "Villager",
+    "cost": 1,
+    "hp": 2,
+    "atk": 0,
+    "ini": 1,
+    "lane": "any",
+    "img": "assets/cards/villager.png",
+    "ability": {
+      "text": "Sem habilidade."
+    }
+  },
+  {
+    "id": "warrior",
+    "name": "Guerreiro",
+    "cost": 2,
+    "hp": 5,
+    "atk": 3,
+    "ini": 2,
+    "lane": "front",
+    "img": "assets/cards/warrior.png",
+    "ability": {
+      "text": "Sem habilidade."
+    }
+  },
+  {
+    "id": "archer",
+    "name": "Arqueiro",
+    "cost": 2,
+    "hp": 3,
+    "atk": 2,
+    "ini": 3,
+    "lane": "back",
+    "img": "assets/cards/archer.png",
+    "ability": {
+      "text": "Sem habilidade."
+    }
+  },
+  {
+    "id": "warlock",
+    "name": "Bruxo",
+    "cost": 3,
+    "hp": 3,
+    "atk": 2,
+    "ini": 3,
+    "lane": "mid",
+    "img": "assets/cards/warlock.png",
+    "ability": {
+      "text": "Sem habilidade (por enquanto)."
+    }
+  },
+  {
+    "id": "paladin",
+    "name": "Paladino",
+    "cost": 3,
+    "hp": 6,
+    "atk": 2,
+    "ini": 1,
+    "lane": "front",
+    "img": "assets/cards/paladin.png",
+    "ability": {
+      "text": "Sem habilidade (por enquanto)."
+    }
+  },
+  {
+    "id": "fire_mage",
+    "name": "Mago de Fogo",
+    "cost": 3,
+    "hp": 4,
+    "atk": 4,
+    "ini": 4,
+    "lane": "mid",
+    "img": "assets/cards/fire_mage.png",
+    "ability": {
+      "text": "Ao atacar: +1 dano direto no jogador inimigo."
+    }
+  },
+  {
+    "id": "death",
+    "name": "A Morte",
+    "cost": 3,
+    "hp": 6,
+    "atk": 4,
+    "ini": 2,
+    "lane": "front",
+    "img": "assets/cards/death.png",
+    "ability": {
+      "text": "Boss."
+    }
+  },
+  {
+    "id": "time_mage",
+    "name": "Mago do Tempo",
+    "cost": 3,
+    "hp": 4,
+    "atk": 2,
+    "ini": 4,
+    "lane": "back",
+    "img": "assets/cards/time_mage.png",
+    "ability": {
+      "text": "Boss."
+    }
+  },
+  {
+    "id": "young_dragon",
+    "name": "Dragão Jovem",
+    "cost": 4,
+    "hp": 10,
+    "atk": 5,
+    "ini": 1,
+    "lane": "front",
+    "img": "assets/cards/young_dragon.png",
+    "ability": {
+      "text": "Boss."
+    }
+  }
+]

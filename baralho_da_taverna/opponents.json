@@ -1,0 +1,55 @@
+[
+  {
+    "id": "taverna",
+    "name": "Duelista da Taverna",
+    "deckMode": "all",
+    "playerHP": 20,
+    "enemyHP": 20
+  },
+  {
+    "id": "a_morte",
+    "name": "A MORTE",
+    "deckMode": "list",
+    "deck": [
+      "death",
+      "time_mage",
+      "warrior",
+      "archer",
+      "warlock",
+      "paladin",
+      "villager",
+      "fire_mage"
+    ],
+    "fixedFive": [
+      "death",
+      "time_mage",
+      "warrior",
+      "archer",
+      "warlock"
+    ],
+    "playerHP": 20,
+    "enemyHP": 24
+  },
+  {
+    "id": "dragao",
+    "name": "Dragão Jovem",
+    "deckMode": "list",
+    "deck": [
+      "young_dragon",
+      "warrior",
+      "archer",
+      "villager",
+      "warlock",
+      "paladin"
+    ],
+    "fixedFive": [
+      "young_dragon",
+      "warrior",
+      "archer",
+      "villager",
+      "warlock"
+    ],
+    "playerHP": 20,
+    "enemyHP": 28
+  }
+]
